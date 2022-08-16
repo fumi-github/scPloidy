@@ -110,9 +110,7 @@ fragmentoverlapcount = function (file,
               sumoverlap3 = sum(sumoverlap3),
               sumoverlap4 = sum(sumoverlap4),
               sumoverlap5 = sum(sumoverlap5))
-  return(list(
-    sumoverlaplist = sumoverlaplist,
-    sumoverlap = sumoverlap))
+  return(sumoverlap)
 }
 
 # A utility function.
