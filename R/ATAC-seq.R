@@ -3,9 +3,9 @@
 #' Count Overlap of ATAC-seq Fragments
 #'
 #' @param file Filename of the file for ATAC-seq fragments.
-#' The file should be block gzipped (using the \code{bgzip} command)
+#' The file must be block gzipped (using the \code{bgzip} command)
 #' and accompanied with the index file (made using the \code{tabix} command).
-#' The uncompressed file should be a tab delimited file,
+#' The uncompressed file must be a tab delimited file,
 #' where each row represents one fragment.
 #' The four columns are chromosome name, start position, end position,
 #' and barcode (i.e., name) of the cell including the fragment.
@@ -19,8 +19,11 @@
 #' @param targetbarcodes Character vector for the barcodes of cells to be analyzed,
 #' such as those passing quality control.
 #' If \code{NULL}, all barcodes in the input file are analyzed.
+#' @return A tibble with each row corresponding to a cell.
+#' For each cell, its barcode, the total count of the fragments \code{nfrag},
+#' and the count distinguished by overlap depth are given.
 #'
-#' @importFrom dplyr arrange distinct group_by mutate n summarize ungroup
+#' @importFrom dplyr arrange desc distinct group_by mutate n rename summarize ungroup
 #' @importFrom GenomicRanges findOverlaps makeGRangesFromDataFrame
 #' @importFrom Rsamtools scanTabix TabixFile
 #' @importFrom utils read.csv setTxtProgressBar txtProgressBar
@@ -78,7 +81,7 @@ fragmentoverlapcount = function (file,
     # Adjust frags$end to the Tn5 insertion site by subtracting Tn5 "width".
     frags$end = frags$end - 9
 
-    # Count overlap.
+    # Count overlap at 5' end of each fragment.
     frags = frags %>%
       group_by(BC) %>%
       mutate(overlapcount = .overlapwithprecedingcount(start, end, TRUE)) %>%
@@ -87,13 +90,13 @@ fragmentoverlapcount = function (file,
     # Summarize per BC.
     fragsbyBC = frags %>%
       group_by(BC) %>%
-      summarize(sumfrag     = n(),
-                sumoverlap0 = sum(overlapcount == 0),
-                sumoverlap1 = sum(overlapcount == 1),
-                sumoverlap2 = sum(overlapcount == 2),
-                sumoverlap3 = sum(overlapcount == 3),
-                sumoverlap4 = sum(overlapcount == 4),
-                sumoverlap5 = sum(overlapcount == 5))
+      summarize(nfrags = n(),
+                depth1 = sum(overlapcount == 0),
+                depth2 = sum(overlapcount == 1),
+                depth3 = sum(overlapcount == 2),
+                depth4 = sum(overlapcount == 3),
+                depth5 = sum(overlapcount == 4),
+                depth6 = sum(overlapcount == 5))
 
     sumoverlaplist = c(sumoverlaplist, list(fragsbyBC))
     setTxtProgressBar(pb, i)
@@ -103,18 +106,20 @@ fragmentoverlapcount = function (file,
   sumoverlap =
     do.call(rbind, sumoverlaplist) %>%
     group_by(BC) %>%
-    summarize(sumfrag     = sum(sumfrag),
-              sumoverlap0 = sum(sumoverlap0),
-              sumoverlap1 = sum(sumoverlap1),
-              sumoverlap2 = sum(sumoverlap2),
-              sumoverlap3 = sum(sumoverlap3),
-              sumoverlap4 = sum(sumoverlap4),
-              sumoverlap5 = sum(sumoverlap5))
+    summarize(nfrags = sum(nfrags),
+              depth1 = sum(depth1),
+              depth2 = sum(depth2),
+              depth3 = sum(depth3),
+              depth4 = sum(depth4),
+              depth5 = sum(depth5),
+              depth6 = sum(depth6))
+  sumoverlap = sumoverlap %>%
+    rename(barcode = BC)
   return(sumoverlap)
 }
 
 # A utility function.
-# The fragments should be sorted by start, end.
+# The fragments must be sorted by start, end.
 .overlapwithprecedingcount =
   function (start, end, include) {
     ct = rep(NA, length(start))
