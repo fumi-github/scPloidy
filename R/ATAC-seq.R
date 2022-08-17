@@ -136,3 +136,104 @@ fragmentoverlapcount = function (file,
     }
     return(ct)
   }
+
+#' Infer Ploidy from ATAC-seq Fragment Overlap
+#'
+#' @param fragmentoverlap Frequency of fragment overlap in each cell
+#' computed by the function \code{fragmentoverlapcount}.
+#' @param levels Possible values of ploidy. For example,
+#' \code{c(2, 4)} if the cells can be diploids or tetraploids.
+#' The values must be larger than one.
+#' @return A data.frame with each row corresponding to a cell.
+#' For each cell, its barcode, ploidy inferred by moment method,
+#' and ploidy inferred by EM algorithm of mixture are given.
+#'
+#' @importFrom matrixStats rowMins
+#' @importFrom mixtools multmixEM
+#' @importFrom rlang abort
+#' @export
+ploidy = function (fragmentoverlap,
+                   levels) {
+  if (min(levels) <= 1) {
+    abort('Error: values of levels must be larger than one.')
+  }
+
+  ### MOMENT BASED METHOD
+  # We model the overlapping of fragments by binomial distribution:
+  # ------------------------------------------------------------
+  # binomial distribution   | overlap of a fragment  | parameter
+  # ------------------------------------------------------------
+  # one observation         | one fragment           |
+  # number of trials (size) | ploidy                 | p
+  # number of success       | depth of overlap       |
+  # probability of success  | probability of overlap | s
+  # ------------------------------------------------------------
+  # Under a predetermined p, for each cell, we estimate s based on
+  # the overlap depth observed in the fragments belonging to the cell.
+  # Since we cannot properly count observations with zero success,
+  # we model as truncated binomial distribution.
+  # We use the moment method in Paul R. Rider (1955).
+  smat =
+    do.call(
+      cbind,
+      lapply(
+        levels,
+        function (p) {
+          x = as.matrix(fragmentoverlap[, -(1:2)])
+          if (p < ncol(x)) {
+            x = cbind(x[, 1:(p-1)], rowSums(x[, p:ncol(x)]))
+          }
+          T0 = x %*% rep(1, ncol(x))
+          T1 = x %*% seq(1, ncol(x))
+          T2 = x %*% (seq(1, ncol(x))^2)
+          s = (T2 - T1) / ((p - 1) * T1)
+          return(s)
+        }))
+  # We seek s that is concordant across all cells.
+  # In each cell, p is allowed to take any value from levels.
+  smat = log10(smat)
+  scandidates = sort(as.numeric(smat))
+  scandidatespenalty =
+    as.numeric(
+      lapply(
+        scandidates,
+        function (s) {
+          sum(matrixStats::rowMins(abs(smat - s)))
+        }))
+  soptimal = scandidates[which.min(scandidatespenalty)]
+  # Adopting the probability soptimal,
+  # infer ploidy of each cell.
+  p.moment = apply(
+    abs(smat - soptimal),
+    1,
+    which.min)
+  p.moment = levels[p.moment]
+
+  ### EM ALGORITHM FOR MIXTURES
+  # We superficially (and possibly robustly) model
+  # as mixtures of multinomial distributions
+  sumoverlapsubmatrix =
+    as.matrix(fragmentoverlap[, 4:6])
+  set.seed(100)
+  em.out = multmixEM(
+    y = sumoverlapsubmatrix,
+    k = length(levels))
+  p.em = apply(em.out$posterior, 1, which.max)
+  # EM is simple clustering and unaware of the labeling in levels.
+  # We transfer the labeling of p.moment to p.em.
+  x = as.matrix(table(p.em, p.moment))
+  x = x / rowSums(x)
+  newlabels = rep(NA, length(levels))
+  for (i in 1:length(levels)) {
+    inds = which(x == max(x), arr.ind = TRUE)
+    newlabels[ as.numeric(rownames(x)[inds[1]]) ] = colnames(x)[inds[2]]
+    x = x[-c(inds[1]), -c(inds[2]), drop = FALSE]
+  }
+  newlabels = as.numeric(newlabels)
+  p.em = newlabels[p.em]
+
+  return(data.frame(
+    barcode = fragmentoverlap$barcode,
+    ploidy.moment = p.moment,
+    ploidy.em = p.em))
+}
