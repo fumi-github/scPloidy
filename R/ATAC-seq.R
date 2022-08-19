@@ -62,6 +62,7 @@ fragmentoverlapcount = function (file,
     if (! is.null(targetbarcodes)) {
       frags = frags[frags$BC %in% targetbarcodes, ]
     }
+    if (nrow(frags) == 0) { next() }
 
     # Discard "semi-duplicate" fragments;
     # Hypothesized Tn5 transposition only at one strand.
@@ -91,6 +92,7 @@ fragmentoverlapcount = function (file,
           end      = frags$end))
       x = x & is.na(findOverlaps(query, excluderegions, select = "first"))
       frags = frags[x, ]
+      if (nrow(frags) == 0) { next() }
     }
 
     # Adjust Tn5 site offset
