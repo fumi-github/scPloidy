@@ -139,6 +139,9 @@ fragmentoverlapcount = function (file,
     setTxtProgressBar(pb, i)
   }
   close(pb)
+  if (identical(sumoverlaplist, list())) {
+    stop('Error: no fragments remained after filtering')
+  }
 
   sumoverlap =
     do.call(rbind, sumoverlaplist) %>%
