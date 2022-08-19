@@ -110,6 +110,8 @@ fragmentoverlapcount = function (file,
       x = as.numeric(names(x)[which.max(x)])
       x = c(0, -x)
       x = x - round(mean(x))
+      setTxtProgressBar(pb, length(targetregions))
+      close(pb)
       return(x)
     } else {
       frags$start = frags$start + Tn5offset[1]
