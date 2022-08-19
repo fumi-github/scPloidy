@@ -101,13 +101,13 @@ fragmentoverlapcount = function (file,
       x = x$overlap
       x = x[abs(x) <= 18]
       if (length(x) < 20) {
-        abort('Datasize is too small for guessing Tn5offset.')
+        stop('Datasize is too small for guessing Tn5offset.')
       }
       x = table(x)
       x = as.numeric(names(x)[which.max(x)])
       x = c(0, -x)
       x = x - round(mean(x))
-      abort(paste0('Recommendation: Tn5offset = c(', x[1], ', ', x[2], ')'))
+      return(x)
     } else {
       frags$start = frags$start + Tn5offset[1]
       frags$end   = frags$end   + Tn5offset[2]
@@ -182,12 +182,11 @@ fragmentoverlapcount = function (file,
 #'
 #' @importFrom matrixStats rowMins
 #' @importFrom mixtools multmixEM
-#' @importFrom rlang abort
 #' @export
 ploidy = function (fragmentoverlap,
                    levels) {
   if (min(levels) <= 1) {
-    abort('Error: values of levels must be larger than one.')
+    stop('Error: values of levels must be larger than one.')
   }
 
   ### MOMENT BASED METHOD
