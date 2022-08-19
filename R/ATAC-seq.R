@@ -104,7 +104,7 @@ fragmentoverlapcount = function (file,
       x = x$overlap
       x = x[abs(x) <= 18]
       if (length(x) < 20) {
-        stop('Datasize is too small for guessing Tn5offset.')
+        stop('Error: datasize is too small for guessing Tn5offset')
       }
       x = table(x)
       x = as.numeric(names(x)[which.max(x)])
@@ -194,7 +194,7 @@ fragmentoverlapcount = function (file,
 ploidy = function (fragmentoverlap,
                    levels) {
   if (min(levels) <= 1) {
-    stop('Error: values of levels must be larger than one.')
+    stop('Error: elements of levels must be larger than one')
   }
 
   ### MOMENT BASED METHOD
