@@ -228,6 +228,12 @@ ploidy = function (fragmentoverlap,
           s = (T2 - T1) / ((p - 1) * T1)
           return(s)
         }))
+  # For a cell with all fragments having depth 1,
+  # T1 == T2 and s == 0.
+  # We replace these with smallest non-zero s computed from all cells.
+  for (i in 1:ncol(smat)) {
+    smat[smat[, i] == 0, i] = min(smat[smat[, i] > 0, i])
+  }
   # We seek s that is concordant across all cells.
   # In each cell, p is allowed to take any value from levels.
   smat = log10(smat)
