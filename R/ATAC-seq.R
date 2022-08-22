@@ -277,8 +277,23 @@ ploidy = function (fragmentoverlap,
   newlabels = as.numeric(newlabels)
   p.em = newlabels[p.em]
 
+  ### K-MEANS POST-PROCESSING OF MOMENT
+  x = log10(
+    (fragmentoverlap[, 4:6] + 1) / fragmentoverlap$nfrags)
+  kmclust =
+    kmeans(
+      x,
+      do.call(
+        rbind,
+        tapply(
+          as.list(as.data.frame(t(x))),
+          p.moment,
+          function (x) {rowMeans(do.call(cbind, x))})))
+  p.km = levels[kmclust$cluster]
+
   return(data.frame(
     barcode = fragmentoverlap$barcode,
     ploidy.moment = p.moment,
-    ploidy.em = p.em))
+    ploidy.em = p.em,
+    ploidy.km = p.km))
 }
