@@ -190,6 +190,7 @@ fragmentoverlapcount = function (file,
 #'
 #' @importFrom matrixStats rowMins
 #' @importFrom mixtools multmixEM
+#' @importFrom stats kmeans
 #' @export
 ploidy = function (fragmentoverlap,
                    levels) {
