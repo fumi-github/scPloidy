@@ -43,7 +43,7 @@ See description.
 In this section, we demonstrate the package by using a dataset included in the package.
 See next section on how to anaylyze your own data.
 
-```{r}
+```{r, eval = FALSE}
 simpleRepeat = readr::read_tsv(
     "data/simpleRepeat.chr19_20.txt.gz",
     col_names = c("chrom", "chromStart", "chromEnd"))
