@@ -87,6 +87,7 @@ fragmentoverlap =
     excluderegions = simpleRepeat,
     Tn5offset = c(4, -5))
 fragmentoverlap
+rm(fragmentoverlap)
 ```
 
 ### Infer ploidy
@@ -95,7 +96,6 @@ Instead of the small dataset computed above,
 we here use a complete dataset for single-nucleus ATAC-seq of rat liver.
 
 ```{r}
-rm(fragmentoverlap)
 data(SHR_m154211.fragmentoverlap)
 fragmentoverlap
 ```
