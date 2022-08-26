@@ -15,7 +15,7 @@ Questions? Please submit to GitHub Issues or e-mail fumihiko AT takeuchi DOT nam
 
 In order to install the most recent version:
 
-    install.package('devtools')
+    install.packages('devtools')
     devtools::install_github('fumi-github/scPloidy', build_vignettes = TRUE)
 
 To uninstall package:
