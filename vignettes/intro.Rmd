@@ -79,7 +79,7 @@ Now compute the overlaps.
 The input file `SHR_m154211.10cells.chr19_20.fragments.txt.gz`
 records the fragments sequenced in ATAC-seq.
 
-```{r}
+```{r, eval = FALSE}
 fragmentoverlap =
   fragmentoverlapcount(
     system.file("extdata", "SHR_m154211.10cells.chr19_20.fragments.txt.gz", package = "scPloidy"),
@@ -101,7 +101,7 @@ fragmentoverlap
 
 Compute ploidy, assuming a mixture of 2x (diploid), 4x (tetraploid) and 8x cells.
 
-```{r}
+```{r, eval = FALSE}
 p = ploidy(fragmentoverlap,
            c(2, 4, 8))
 p
