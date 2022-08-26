@@ -1,5 +1,5 @@
 ---
-title: "intro"
+title: "Introduction to scPloidy"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{intro}
@@ -41,20 +41,73 @@ See description.
 ## Analyzing sample data
 
 In this section, we demonstrate the package by using a dataset included in the package.
-See next section on how to anaylyze your own data.
+See next section on how to analyze your own data.
+
+### Compute overlaps of DNA fragments
+
+We use small dataset for single-nucleus ATAC-seq of rat liver.
+To limit the file size, it only includes 10 cells and fragments from chromosomes 19 and 20.
+The fragments were mapped to the rat rn7 genome.
+
+We first set the regions where overlaps are counted.
+This is usually all of the autosomes.
+
+```{r}
+targetregions =
+  GenomicRanges::GRanges(
+    c("chr19", "chr20"),
+    IRanges::IRanges(c(1, 1), width = 500000000))
+```
+
+Simple repeats in the genome can generate false overlaps.
+We exclude such regions.
+The regions were downloaded from USCS genome browser.
 
 ```{r, eval = FALSE}
 simpleRepeat = readr::read_tsv(
   system.file("extdata", "simpleRepeat.chr19_20.txt.gz", package = "scPloidy"),
   col_names = c("chrom", "chromStart", "chromEnd"))
+simpleRepeat[, 2] = simpleRepeat[, 2] + 1 # convert from 0-based position to 1-based
+simpleRepeat = GenomicRanges::makeGRangesFromDataFrame(
+  as.data.frame(simpleRepeat),
+  seqnames.field = "chrom",
+  start.field    = "chromStart",
+  end.field      = "chromEnd")
 ```
 
-file.path
+Now compute the overlaps.
+The input file `SHR_m154211.10cells.chr19_20.fragments.txt.gz`
+records the fragments sequenced in ATAC-seq.
+
+```{r}
+fragmentoverlap =
+  fragmentoverlapcount(
+    system.file("extdata", "SHR_m154211.10cells.chr19_20.fragments.txt.gz", package = "scPloidy"),
+    targetregions,
+    excluderegions = simpleRepeat,
+    Tn5offset = c(4, -5))
+fragmentoverlap
+```
+
+### Infer ploidy
+
+Instead of the small dataset computed above,
+we here use a complete dataset for single-nucleus ATAC-seq of rat liver.
 
 ```{r}
 data(SHR_m154211.fragmentoverlap)
+fragmentoverlap
 ```
 
+Compute ploidy, assuming a mixture of 2x (diploid), 4x (tetraploid) and 8x cells.
+
+```{r}
+p = ploidy(fragmentoverlap,
+           c(2, 4, 8))
+p
+```
+
+We recommend using `ploidy.moment` which is based on moment method.
 
 ## Analyzing your own data
 
