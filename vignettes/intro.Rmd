@@ -45,8 +45,8 @@ See next section on how to anaylyze your own data.
 
 ```{r, eval = FALSE}
 simpleRepeat = readr::read_tsv(
-    "data/simpleRepeat.chr19_20.txt.gz",
-    col_names = c("chrom", "chromStart", "chromEnd"))
+  system.file("extdata", "simpleRepeat.chr19_20.txt.gz", package = "scPloidy"),
+  col_names = c("chrom", "chromStart", "chromEnd"))
 ```
 
 file.path
