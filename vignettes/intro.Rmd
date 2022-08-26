@@ -95,6 +95,7 @@ Instead of the small dataset computed above,
 we here use a complete dataset for single-nucleus ATAC-seq of rat liver.
 
 ```{r}
+rm(fragmentoverlap)
 data(SHR_m154211.fragmentoverlap)
 fragmentoverlap
 ```
@@ -104,7 +105,7 @@ Compute ploidy, assuming a mixture of 2x (diploid), 4x (tetraploid) and 8x cells
 ```{r, eval = FALSE}
 p = ploidy(fragmentoverlap,
            c(2, 4, 8))
-p
+head(p)
 ```
 
 We recommend using `ploidy.moment` which is based on moment method.
