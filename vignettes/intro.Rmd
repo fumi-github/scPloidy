@@ -14,9 +14,47 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Introduction
+
+`scPloidy` is a package to compute ploidy of single cells (or nuclei) based on
+single-cell (or single-nucleus) ATAC-seq data.
+In ATAC-seq, open chromatin regions are excised and sequenced.
+For any site on the genome, ATAC-seq could read 0, 1 or 2 DNA fragments,
+if the cell was diploid.
+If the cell was tetraploid, ATAC-seq could read 0, 1, 2, 3 or 4 fragments from the same site.
+This is the basic idea used in `scPloidy`.
+We model the depth of DNA sequencing at one site by binomial distribution.
+
+## Usage
+
 ```{r setup}
 library(scPloidy)
 ```
+
+See description.
+
+```{r}
+?fragmentoverlapcount
+?ploidy
+```
+
+## Analyzing sample data
+
+In this section, we demonstrate the package by using a dataset included in the package.
+See next section on how to anaylyze your own data.
+
+```{r}
+simpleRepeat = readr::read_tsv(
+    "data/simpleRepeat.chr19_20.txt.gz",
+    col_names = c("chrom", "chromStart", "chromEnd"))
+```
+
+file.path
+
+```{r}
+data(SHR_m154211.fragmentoverlap)
+```
+
 
 ## Analyzing your own data
 
