@@ -266,17 +266,9 @@ ploidy = function (fragmentoverlap,
     k = length(levels))
   p.em = apply(em.out$posterior, 1, which.max)
   # EM is simple clustering and unaware of the labeling in levels.
-  # We transfer the labeling of p.moment to p.em.
-  x = as.matrix(table(p.em, p.moment))
-  x = x / rowSums(x)
-  newlabels = rep(NA, length(levels))
-  for (i in 1:length(levels)) {
-    inds = which(x == max(x), arr.ind = TRUE)
-    newlabels[ as.numeric(rownames(x)[inds[1]]) ] = colnames(x)[inds[2]]
-    x = x[-c(inds[1]), -c(inds[2]), drop = FALSE]
-  }
-  newlabels = as.numeric(newlabels)
-  p.em = newlabels[p.em]
+  # We infer the labeling from the last element of theta,
+  # which represents the overlaps of largest depth used for clustering.
+  p.em = (levels[order(em.out$theta[, 3])])[p.em]
 
   ### K-MEANS POST-PROCESSING OF MOMENT
   x = log10(
