@@ -258,12 +258,18 @@ ploidy = function (fragmentoverlap,
   ### EM ALGORITHM FOR MIXTURES
   # We superficially (and possibly robustly) model
   # as mixtures of multinomial distributions
-  sumoverlapsubmatrix =
-    as.matrix(fragmentoverlap[, 4:6])
-  set.seed(100)
-  em.out = multmixEM(
-    y = sumoverlapsubmatrix,
-    k = length(levels))
+  # We first try with (depth2, depth3, depth4),
+  # but if the clusters don't separate,
+  # next try (depth3, depth4, depth5), and so on.
+  for (j in 4:6) {
+    sumoverlapsubmatrix =
+      as.matrix(fragmentoverlap[, 0:2 + j])
+    set.seed(100)
+    em.out = multmixEM(
+      y = sumoverlapsubmatrix,
+      k = length(levels))
+    if (max(em.out$lambda) < 0.99) { break }
+  }
   p.em = apply(em.out$posterior, 1, which.max)
   # EM is simple clustering and unaware of the labeling in levels.
   # We infer the labeling from the last element of theta,
