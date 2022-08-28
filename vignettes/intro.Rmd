@@ -165,7 +165,7 @@ tabix -b 2 -e 3 fragments.txt.gz
 The Perl script samtofragmentbed.pl is included in this package
 as this file:
 
-```{r}
+```{r, eval = FALSE}
 system.file("perl", "samtofragmentbed.pl", package = "scPloidy")
 ```
 
