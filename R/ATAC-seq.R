@@ -186,6 +186,7 @@ fragmentoverlapcount = function (file,
 #' The values must be larger than one.
 #' @return A data.frame with each row corresponding to a cell.
 #' For each cell, its barcode, ploidy inferred by moment method,
+#' the same with additional K-means clustering,
 #' and ploidy inferred by EM algorithm of mixture are given.
 #'
 #' @importFrom matrixStats rowMins
@@ -288,11 +289,11 @@ ploidy = function (fragmentoverlap,
           as.list(as.data.frame(t(x))),
           p.moment,
           function (x) {rowMeans(do.call(cbind, x))})))
-  p.km = levels[kmclust$cluster]
+  p.kmeans = levels[kmclust$cluster]
 
   return(data.frame(
     barcode = fragmentoverlap$barcode,
     ploidy.moment = p.moment,
-    ploidy.em = p.em,
-    ploidy.km = p.km))
+    ploidy.kmeans = p.kmeans,
+    ploidy.em = p.em))
 }
