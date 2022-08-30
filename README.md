@@ -13,6 +13,12 @@ Questions? Please submit to GitHub Issues or e-mail fumihiko AT takeuchi DOT nam
 
 ## Installation in R
 
+Beforehand, these packages need to be installed from Bioconductor:
+
+    if (!require("BiocManager", quietly = TRUE))
+      install.packages("BiocManager")
+    BiocManager::install(c("GenomicRanges", "IRanges", "Rsamtools"))
+
 In order to install the most recent version:
 
     install.packages('devtools')
