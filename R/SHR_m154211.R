@@ -11,10 +11,13 @@
 #'
 #' @usage data(SHR_m154211)
 #'
-#' @source \href{https://doi.org/10.1101/2022.07.12.499681}{bioRxiv}
+#' @source \href{https://doi.org/10.1101/2022.07.12.499681}{Takeuchi et al. (2022) bioRxiv}
 #'
 #' @examples
+#' data(SHR_m154211)
+#' fragmentoverlap = SHR_m154211$fragmentoverlap
 #' p = ploidy(fragmentoverlap, c(2, 4, 8))
 #' head(p)
+#' cells = SHR_m154211$cells
 #' table(cells$celltype, p$ploidy.moment[match(cells$barcode, p$barcode)])
 "SHR_m154211"

@@ -63,7 +63,7 @@ Simple repeats in the genome can generate false overlaps.
 We exclude such regions.
 The regions were downloaded from USCS genome browser.
 
-```{r, eval = FALSE}
+```{r}
 simpleRepeat = readr::read_tsv(
   system.file("extdata", "simpleRepeat.chr19_20.txt.gz", package = "scPloidy"),
   col_names = c("chrom", "chromStart", "chromEnd"))
@@ -79,7 +79,7 @@ Now compute the overlaps.
 The input file `SHR_m154211.10cells.chr19_20.fragments.txt.gz`
 records the fragments sequenced in ATAC-seq.
 
-```{r, eval = FALSE}
+```{r}
 fragmentoverlap =
   fragmentoverlapcount(
     system.file("extdata", "SHR_m154211.10cells.chr19_20.fragments.txt.gz", package = "scPloidy"),
@@ -97,13 +97,15 @@ we here use a complete dataset for single-nucleus ATAC-seq of rat liver.
 
 ```{r}
 data(SHR_m154211)
+?SHR_m154211
+fragmentoverlap = SHR_m154211$fragmentoverlap
 fragmentoverlap
 ```
 
 Compute ploidy, assuming a mixture of 2x (diploid), 4x (tetraploid) and 8x cells.
 We recommend using `ploidy.moment` which is based on moment method.
 
-```{r, eval = FALSE}
+```{r}
 p = ploidy(fragmentoverlap,
            c(2, 4, 8))
 head(p)
@@ -113,6 +115,7 @@ The cell type of the cells are stored in dataframe `cells`.
 There are many hepatocytes of 4x and 8x, but other cell types are mostly 2x.
 
 ```{r}
+cells = SHR_m154211$cells
 table(cells$celltype,
       p$ploidy.moment[match(cells$barcode, p$barcode)])
 ```
