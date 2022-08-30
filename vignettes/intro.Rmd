@@ -96,11 +96,12 @@ Instead of the small dataset computed above,
 we here use a complete dataset for single-nucleus ATAC-seq of rat liver.
 
 ```{r}
-data(SHR_m154211.fragmentoverlap)
+data(SHR_m154211)
 fragmentoverlap
 ```
 
 Compute ploidy, assuming a mixture of 2x (diploid), 4x (tetraploid) and 8x cells.
+We recommend using `ploidy.moment` which is based on moment method.
 
 ```{r, eval = FALSE}
 p = ploidy(fragmentoverlap,
@@ -108,7 +109,13 @@ p = ploidy(fragmentoverlap,
 head(p)
 ```
 
-We recommend using `ploidy.moment` which is based on moment method.
+The cell type of the cells are stored in dataframe `cells`.
+There are many hepatocytes of 4x and 8x, but other cell types are mostly 2x.
+
+```{r}
+table(cells$celltype,
+      p$ploidy.moment[match(cells$barcode, p$barcode)])
+```
 
 ## Analyzing your own data
 
