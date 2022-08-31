@@ -24,7 +24,11 @@ The remaining columns are ignored.
 See vignette for details.}
 
 \item{targetregions}{GRanges object for the regions where overlaps are counted.
-Usually all of the autosomes.}
+Usually all of the autosomes.
+If there is memory problem, split a chromosome into smaller chunks,
+for example by 10 Mb.
+The function loads each element of \code{targetregions} sequentially,
+and smaller elements require less memory.}
 
 \item{excluderegions}{GRanges object for the regions to be excluded.
 Simple repeats in the genome should be listed here,

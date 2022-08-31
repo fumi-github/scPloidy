@@ -93,7 +93,7 @@ rm(fragmentoverlap)
 ### Infer ploidy
 
 Instead of the small dataset computed above,
-we here use a complete dataset for single-nucleus ATAC-seq of rat liver.
+we here use a complete dataset for single-nucleus ATAC-seq of a rat liver.
 
 ```{r}
 data(SHR_m154211)
@@ -132,7 +132,7 @@ specifying the option `Tn5offset = c(1, 0)`
 ### Using BAM file
 
 Although this requires several steps, you can start from a BAM file
-and generate fragments file from scPloidy.
+and generate fragments file for `scPloidy`.
 You need to install `samtools`, `bgzip` and `tabix`,
 and run the following in your shell.
 
@@ -172,7 +172,7 @@ samtools view -f 0x2 -F 0x900 -q 30 snap.nsrt.bam  \
 tabix -b 2 -e 3 fragments.txt.gz
 ```
 
-The Perl script samtofragmentbed.pl is included in this package
+The Perl script `samtofragmentbed.pl` is included in this package
 as this file:
 
 ```{r, eval = FALSE}

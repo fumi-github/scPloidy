@@ -1,11 +1,11 @@
-#' Liver Cells from Rat
+#' Liver Cells from a Rat
 #'
-#' The dataset includes 3572 nuclei from the liver of a male rat of 16 weeks age,
-#' which was fed normal diet.
+#' The dataset includes 3572 nuclei obtained from the liver of
+#' a 16 weeks old male rat, which was fed normal diet.
 #' Overlapping of single-nucleus ATAC-seq fragments was computed with the
-#' `fragmentoverlapcount` function and saved as `fragmentoverlap`.
-#' The cell type of the nuclei are saved in the dataframe `cells`.
-#' The data for rat SHR_m154211 was taken from publication.
+#' \code{fragmentoverlapcount} function and saved as \code{fragmentoverlap}.
+#' The cell type of the nuclei are saved in the data.frame \code{cells}.
+#' The data for rat SHR_m154211 was taken from the publication cited below.
 #'
 #' @docType data
 #'
