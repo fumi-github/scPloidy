@@ -19,6 +19,7 @@ A data.frame with each row corresponding to a cell.
 For each cell, its barcode, ploidy inferred by moment method,
 the same with additional K-means clustering,
 and ploidy inferred by EM algorithm of mixture are given.
+I recommend using \code{ploidy.moment}.
 }
 \description{
 Infer Ploidy from ATAC-seq Fragment Overlap

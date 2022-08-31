@@ -187,6 +187,7 @@ fragmentoverlapcount = function (file,
 #' For each cell, its barcode, ploidy inferred by moment method,
 #' the same with additional K-means clustering,
 #' and ploidy inferred by EM algorithm of mixture are given.
+#' I recommend using \code{ploidy.moment}.
 #'
 #' @importFrom matrixStats rowMins
 #' @importFrom mixtools multmixEM
@@ -201,9 +202,9 @@ ploidy = function (fragmentoverlap,
   ### MOMENT BASED METHOD
   # We model the overlapping of fragments by binomial distribution:
   # ------------------------------------------------------------
-  # binomial distribution   | overlap of a fragment  | parameter
+  # binomial distribution   | overlap of fragments   | parameter
   # ------------------------------------------------------------
-  # one observation         | one fragment           |
+  # one observation         | 5' end of a fragment   |
   # number of trials (size) | ploidy                 | p
   # number of success       | depth of overlap       |
   # probability of success  | probability of overlap | s
