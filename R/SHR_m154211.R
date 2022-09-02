@@ -11,7 +11,7 @@
 #'
 #' @usage data(SHR_m154211)
 #'
-#' @source \href{https://doi.org/10.1101/2022.07.12.499681}{Takeuchi et al. (2022) bioRxiv}
+#' @source Takeuchi et al. (2022) bioRxiv \doi{10.1101/2022.07.12.499681}
 #'
 #' @examples
 #' data(SHR_m154211)
