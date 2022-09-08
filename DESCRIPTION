@@ -18,6 +18,7 @@ Imports:
     magrittr,
     matrixStats,
     mixtools,
+    rlang,
     Rsamtools,
     utils
 Suggests: 

@@ -41,6 +41,7 @@
 #'
 #' @importFrom dplyr arrange desc distinct group_by lag mutate n rename summarize ungroup
 #' @importFrom GenomicRanges findOverlaps makeGRangesFromDataFrame
+#' @importFrom rlang .data
 #' @importFrom Rsamtools scanTabix TabixFile
 #' @importFrom utils read.csv setTxtProgressBar txtProgressBar
 #' @export
@@ -70,15 +71,15 @@ fragmentoverlapcount = function (file,
     # Discard "semi-duplicate" fragments;
     # Hypothesized Tn5 transposition only at one strand.
     frags = frags %>%
-      group_by(BC) %>%
+      group_by(.data$BC) %>%
       # Between chrX:100-200 and chrX:100-300, only retain first
-      arrange(start, end) %>%
-      distinct(start, .keep_all = TRUE) %>%
+      arrange(.data$start, .data$end) %>%
+      distinct(.data$start, .keep_all = TRUE) %>%
       # Between chrX:100-300 and chrX:200-300, only retain last
-      arrange(desc(end), desc(start)) %>%
-      distinct(end, .keep_all = TRUE) %>%
+      arrange(desc(.data$end), desc(.data$start)) %>%
+      distinct(.data$end, .keep_all = TRUE) %>%
       ungroup() %>%
-      arrange(start, end, BC)
+      arrange(.data$start, .data$end, .data$BC)
 
     # Discard fragment if 5' or 3' is located in excluderegions.
     if (! is.null(excluderegions)) {
@@ -101,8 +102,8 @@ fragmentoverlapcount = function (file,
     # Adjust Tn5 site offset
     if (identical(Tn5offset, "guess")) {
       x = frags %>%
-        group_by(BC) %>%
-        mutate(overlap = (lag(end) - start + 1)) %>%
+        group_by(.data$BC) %>%
+        mutate(overlap = (lag(.data$end) - .data$start + 1)) %>%
         ungroup()
       x = x$overlap
       x = x[abs(x) <= 18]
@@ -123,20 +124,20 @@ fragmentoverlapcount = function (file,
 
     # Count overlap at 5' end of each fragment.
     frags = frags %>%
-      group_by(BC) %>%
-      mutate(overlapcount = .overlapwithprecedingcount(start, end, TRUE)) %>%
+      group_by(.data$BC) %>%
+      mutate(overlapcount = .overlapwithprecedingcount(.data$start, .data$end, TRUE)) %>%
       ungroup()
 
     # Summarize per BC.
     fragsbyBC = frags %>%
-      group_by(BC) %>%
+      group_by(.data$BC) %>%
       summarize(nfrags = n(),
-                depth1 = sum(overlapcount == 0),
-                depth2 = sum(overlapcount == 1),
-                depth3 = sum(overlapcount == 2),
-                depth4 = sum(overlapcount == 3),
-                depth5 = sum(overlapcount == 4),
-                depth6 = sum(overlapcount == 5))
+                depth1 = sum(.data$overlapcount == 0),
+                depth2 = sum(.data$overlapcount == 1),
+                depth3 = sum(.data$overlapcount == 2),
+                depth4 = sum(.data$overlapcount == 3),
+                depth5 = sum(.data$overlapcount == 4),
+                depth6 = sum(.data$overlapcount == 5))
 
     sumoverlaplist = c(sumoverlaplist, list(fragsbyBC))
     setTxtProgressBar(pb, i)
@@ -148,7 +149,7 @@ fragmentoverlapcount = function (file,
 
   sumoverlap =
     do.call(rbind, sumoverlaplist) %>%
-    group_by(BC) %>%
+    group_by(.data$BC) %>%
     summarize(nfrags = sum(nfrags),
               depth1 = sum(depth1),
               depth2 = sum(depth2),
@@ -157,7 +158,7 @@ fragmentoverlapcount = function (file,
               depth5 = sum(depth5),
               depth6 = sum(depth6))
   sumoverlap = sumoverlap %>%
-    rename(barcode = BC)
+    rename(barcode = .data$BC)
   return(sumoverlap)
 }
 
