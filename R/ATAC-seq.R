@@ -150,13 +150,13 @@ fragmentoverlapcount = function (file,
   sumoverlap =
     do.call(rbind, sumoverlaplist) %>%
     group_by(.data$BC) %>%
-    summarize(nfrags = sum(nfrags),
-              depth1 = sum(depth1),
-              depth2 = sum(depth2),
-              depth3 = sum(depth3),
-              depth4 = sum(depth4),
-              depth5 = sum(depth5),
-              depth6 = sum(depth6))
+    summarize(nfrags = sum(.data$nfrags),
+              depth1 = sum(.data$depth1),
+              depth2 = sum(.data$depth2),
+              depth3 = sum(.data$depth3),
+              depth4 = sum(.data$depth4),
+              depth5 = sum(.data$depth5),
+              depth6 = sum(.data$depth6))
   sumoverlap = sumoverlap %>%
     rename(barcode = .data$BC)
   return(sumoverlap)
