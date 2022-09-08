@@ -1,7 +1,7 @@
 Package: scPloidy
 Type: Package
 Title: Infer Ploidy of Single Cells
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Fumihiko", "Takeuchi", role = c("aut", "cre"),
                   email = "fumihiko@takeuchi.name",
                   comment = c(ORCID = "0000-0003-3185-5661"))
