@@ -188,6 +188,7 @@ fragmentoverlapcount = function (file,
 #' @param levels Possible values of ploidy. For example,
 #' \code{c(2, 4)} if the cells can be diploids or tetraploids.
 #' The values must be larger than one.
+#' @param s Seed for random numbers used in EM algorithm.
 #' @return A data.frame with each row corresponding to a cell.
 #' For each cell, its barcode, ploidy inferred by moment method,
 #' the same with additional K-means clustering,
@@ -199,7 +200,8 @@ fragmentoverlapcount = function (file,
 #' @importFrom stats kmeans
 #' @export
 ploidy = function (fragmentoverlap,
-                   levels) {
+                   levels,
+                   s = 100) {
   if (min(levels) <= 1) {
     stop('Error: elements of levels must be larger than one')
   }
@@ -270,7 +272,7 @@ ploidy = function (fragmentoverlap,
   for (j in 4:6) {
     sumoverlapsubmatrix =
       as.matrix(fragmentoverlap[, 0:2 + j])
-    set.seed(100)
+    set.seed(s)
     em.out = multmixEM(
       y = sumoverlapsubmatrix,
       k = length(levels))

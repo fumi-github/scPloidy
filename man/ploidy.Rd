@@ -4,7 +4,7 @@
 \alias{ploidy}
 \title{Infer Ploidy from ATAC-seq Fragment Overlap}
 \usage{
-ploidy(fragmentoverlap, levels)
+ploidy(fragmentoverlap, levels, s = 100)
 }
 \arguments{
 \item{fragmentoverlap}{Frequency of fragment overlap in each cell
@@ -13,6 +13,8 @@ computed by the function \code{fragmentoverlapcount}.}
 \item{levels}{Possible values of ploidy. For example,
 \code{c(2, 4)} if the cells can be diploids or tetraploids.
 The values must be larger than one.}
+
+\item{s}{Seed for random numbers used in EM algorithm.}
 }
 \value{
 A data.frame with each row corresponding to a cell.
