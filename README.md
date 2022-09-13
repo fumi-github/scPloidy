@@ -19,7 +19,11 @@ Beforehand, these packages need to be installed from Bioconductor:
       install.packages("BiocManager")
     BiocManager::install(c("GenomicRanges", "IRanges", "Rsamtools"))
 
-In order to install the most recent version:
+Install from CRAN:
+
+    install.packages('scPloidy')
+
+In order to install the developmental version:
 
     install.packages('devtools')
     devtools::install_github('fumi-github/scPloidy', build_vignettes = TRUE)
