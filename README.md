@@ -9,6 +9,10 @@ If the cell was tetraploid, ATAC-seq could read 0, 1, 2, 3 or 4 fragments from t
 This is the basic idea used in `scPloidy`.
 We model the depth of DNA sequencing at one site by binomial distribution.
 
+Here is a
+[mini-poster](https://www.fumihiko.takeuchi.name/PUBLICATIONS/220914OzSingleCell_scPloidy.pdf)
+presented at OzSingleCell2022 on 14 Sept 2022.
+
 Questions? Please submit to GitHub Issues or e-mail fumihiko AT takeuchi DOT name
 
 ## Installation in R
