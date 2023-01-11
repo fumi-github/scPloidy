@@ -190,6 +190,14 @@ fragmentoverlapcount = function (file,
 #' The values must be larger than one.
 #' @param s Seed for random numbers used in EM algorithm.
 #' @param epsilon Convergence criterion for the EM algorithm.
+#' @param subsamplesize EM algorithm becomes difficult to converge
+#' when the number of cells is very large.
+#' By setting the parameter (e.g. to 1e4),
+#' we can run EM algorithm iteratively,
+#' first for \code{subsamplesize} randomly sampled cells,
+#' next for twice the number of cells in repetition.
+#' The inferred lambda/theta parameters are used as the initial value
+#' in the next repetition.
 #' @return A data.frame with each row corresponding to a cell.
 #' For each cell, its barcode, ploidy inferred by moment method,
 #' the same with additional K-means clustering,
@@ -203,7 +211,8 @@ fragmentoverlapcount = function (file,
 ploidy = function (fragmentoverlap,
                    levels,
                    s = 100,
-                   epsilon = 1e-08) {
+                   epsilon = 1e-08,
+                   subsamplesize = NULL) {
   if (min(levels) <= 1) {
     stop('Error: elements of levels must be larger than one')
   }
@@ -274,9 +283,28 @@ ploidy = function (fragmentoverlap,
   for (j in 4:6) {
     sumoverlapsubmatrix =
       as.matrix(fragmentoverlap[, 0:2 + j])
+    lambda = NULL
+    theta = NULL
+    if (is.numeric(subsamplesize)) {
+      while (subsamplesize < nrow(sumoverlapsubmatrix)) {
+        set.seed(s)
+        em.out.small = multmixEM(
+          y = sumoverlapsubmatrix[
+            sample(nrow(sumoverlapsubmatrix), subsamplesize), ],
+          lambda = lambda,
+          theta = theta,
+          k = length(levels),
+          epsilon = epsilon)
+        lambda = em.out.small$lambda
+        theta = em.out.small$theta
+        subsamplesize = 2 * subsamplesize
+      }
+    }
     set.seed(s)
     em.out = multmixEM(
       y = sumoverlapsubmatrix,
+      lambda = lambda,
+      theta = theta,
       k = length(levels),
       epsilon = epsilon)
     if (max(em.out$lambda) < 0.99) { break }

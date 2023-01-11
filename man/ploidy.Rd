@@ -4,7 +4,7 @@
 \alias{ploidy}
 \title{Infer Ploidy from ATAC-seq Fragment Overlap}
 \usage{
-ploidy(fragmentoverlap, levels, s = 100)
+ploidy(fragmentoverlap, levels, s = 100, epsilon = 1e-08, subsamplesize = NULL)
 }
 \arguments{
 \item{fragmentoverlap}{Frequency of fragment overlap in each cell
@@ -15,6 +15,17 @@ computed by the function \code{fragmentoverlapcount}.}
 The values must be larger than one.}
 
 \item{s}{Seed for random numbers used in EM algorithm.}
+
+\item{epsilon}{Convergence criterion for the EM algorithm.}
+
+\item{subsamplesize}{EM algorithm becomes difficult to converge
+when the number of cells is very large.
+By setting the parameter (e.g. to 1e4),
+we can run EM algorithm iteratively,
+first for \code{subsamplesize} randomly sampled cells,
+next for twice the number of cells in repetition.
+The inferred lambda/theta parameters are used as the initial value
+in the next repetition.}
 }
 \value{
 A data.frame with each row corresponding to a cell.
