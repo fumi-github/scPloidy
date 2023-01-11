@@ -282,7 +282,7 @@ ploidy = function (fragmentoverlap,
   # EM is simple clustering and unaware of the labeling in levels.
   # We infer the labeling from the last element of theta,
   # which represents the overlaps of largest depth used for clustering.
-  p.em = (levels[order(em.out$theta[, 3])])[p.em]
+  p.em = ( sort(levels)[ rank(em.out$theta[, 3]) ] )[p.em]
 
   ### K-MEANS POST-PROCESSING OF MOMENT
   x = log10(
