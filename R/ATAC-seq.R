@@ -206,7 +206,7 @@ fragmentoverlapcount = function (file,
 #'
 #' @importFrom matrixStats rowMins
 #' @importFrom mixtools multmixEM
-#' @importFrom stats kmeans
+#' @importFrom stats kmeans optimize
 #' @export
 ploidy = function (fragmentoverlap,
                    levels,
@@ -257,15 +257,13 @@ ploidy = function (fragmentoverlap,
   # We seek s that is concordant across all cells.
   # In each cell, p is allowed to take any value from levels.
   smat = log10(smat)
-  scandidates = sort(as.numeric(smat))
-  scandidatespenalty =
-    as.numeric(
-      lapply(
-        scandidates,
-        function (s) {
-          sum(matrixStats::rowMins(abs(smat - s)))
-        }))
-  soptimal = scandidates[which.min(scandidatespenalty)]
+  soptimize = optimize(
+    function (s) {
+      sum(matrixStats::rowMins(abs(smat - s)))
+    },
+    lower = min(as.numeric(smat)),
+    upper = max(as.numeric(smat)))
+  soptimal = soptimize$minimum
   # Adopting the probability soptimal,
   # infer ploidy of each cell.
   p.moment = apply(
