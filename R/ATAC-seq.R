@@ -204,9 +204,9 @@ fragmentoverlapcount = function (file,
 #' and ploidy inferred by EM algorithm of mixture are given.
 #' I recommend using \code{ploidy.moment}.
 #'
-#' @importFrom matrixStats rowMins
+#' @importFrom matrixStats colMins
 #' @importFrom mixtools multmixEM
-#' @importFrom stats kmeans optimize
+#' @importFrom stats kmeans optimize quantile
 #' @export
 ploidy = function (fragmentoverlap,
                    levels,
@@ -232,45 +232,48 @@ ploidy = function (fragmentoverlap,
   # Since we cannot properly count observations with zero success,
   # we model as truncated binomial distribution.
   # We use the moment method in Paul R. Rider (1955).
-  smat =
-    do.call(
-      cbind,
-      lapply(
-        levels,
-        function (p) {
-          x = as.matrix(fragmentoverlap[, -(1:2)])
-          if (p < ncol(x)) {
-            x = cbind(x[, 1:(p-1)], rowSums(x[, p:ncol(x)]))
-          }
-          T0 = x %*% rep(1, ncol(x))
-          T1 = x %*% seq(1, ncol(x))
-          T2 = x %*% (seq(1, ncol(x))^2)
-          s = (T2 - T1) / ((p - 1) * T1)
-          return(s)
-        }))
-  # For a cell with all fragments having depth 1,
-  # T1 == T2 and s == 0.
-  # We replace these with smallest non-zero s computed from all cells.
-  for (i in 1:ncol(smat)) {
-    smat[smat[, i] == 0, i] = min(smat[smat[, i] > 0, i])
-  }
-  # We seek s that is concordant across all cells.
-  # In each cell, p is allowed to take any value from levels.
-  smat = log10(smat)
-  soptimize = optimize(
-    function (s) {
-      sum(matrixStats::rowMins(abs(smat - s)))
-    },
-    lower = min(as.numeric(smat)),
-    upper = max(as.numeric(smat)))
-  soptimal = soptimize$minimum
-  # Adopting the probability soptimal,
-  # infer ploidy of each cell.
-  p.moment = apply(
-    abs(smat - soptimal),
-    1,
-    which.min)
+  x = as.matrix(fragmentoverlap[, -(1:2)])
+  T1 = as.numeric(x %*% seq(1, ncol(x)))
+  T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
+  T2T1 = T2 / T1 - 1
+
+  logT2T1capped = log(T2T1)
+  x = 2 * quantile(log(T2T1), 0.75) -
+    quantile(log(T2T1), 0.5)
+  logT2T1capped =
+    pmin(logT2T1capped , x)
+  x = 2 * quantile(log(T2T1), 0.25) -
+    quantile(log(T2T1), 0.5)
+  logT2T1capped =
+    pmax(logT2T1capped, x)
+  # Although unlikely, adjust if -Inf remains.
+  x = min(logT2T1capped[is.finite(logT2T1capped)])
+  logT2T1capped =
+    pmax(logT2T1capped, x)
+
+  m = matrix(
+    logT2T1capped,
+    nrow = length(levels),
+    ncol = length(logT2T1capped),
+    byrow = TRUE)
+  offsetoptimize =
+    optimize(
+      function (o) {
+        x = m + o - log(levels - 1)
+        return(sum(matrixStats::colMins(x^2))) },
+      lower = min(log(levels - 1)) -
+        max(logT2T1capped),
+      upper = max(log(levels - 1)) -
+        min(logT2T1capped))
+  p.moment =
+    apply(
+      abs(m + offsetoptimize$minimum - log(levels - 1)),
+      2,
+      which.min)
   p.moment = levels[p.moment]
+  # exp(offsetoptimize$minimum) is the estimate for 1/s
+  p.momentfractional =
+    T2T1 * exp(offsetoptimize$minimum) + 1
 
   ### EM ALGORITHM FOR MIXTURES
   # We superficially (and possibly robustly) model
@@ -330,6 +333,7 @@ ploidy = function (fragmentoverlap,
   return(data.frame(
     barcode = fragmentoverlap$barcode,
     ploidy.moment = p.moment,
+    ploidy.momentfractional = p.momentfractional,
     ploidy.kmeans = p.kmeans,
     ploidy.em = p.em))
 }
