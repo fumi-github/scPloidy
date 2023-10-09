@@ -39,10 +39,12 @@
 #' For each cell, its barcode, the total count of the fragments \code{nfrag},
 #' and the count distinguished by overlap depth are given.
 #'
-#' @importFrom dplyr arrange desc distinct group_by lag mutate n rename summarize ungroup
+#' @importFrom dplyr arrange desc distinct filter group_by lag left_join mutate n rename summarize ungroup
 #' @importFrom GenomicRanges findOverlaps makeGRangesFromDataFrame
 #' @importFrom rlang .data
+#' @importFrom tidyr pivot_wider
 #' @importFrom Rsamtools scanTabix TabixFile
+#' @importFrom stats ksmooth
 #' @importFrom utils read.csv setTxtProgressBar txtProgressBar
 #' @export
 fragmentoverlapcount = function (file,
@@ -139,6 +141,46 @@ fragmentoverlapcount = function (file,
                 depth5 = sum(.data$overlapcount == 4),
                 depth6 = sum(.data$overlapcount == 5))
 
+    # Compute smoothed distance to the next fragment (irrelevant to BC),
+    # which is the inverse of chromatin accessibility.
+    compute_smoothed_distance <-
+      function(frags) {
+        smoothed_starts <- ksmooth(1:nrow(frags), frags$start, bandwidth = 20)$y
+        differences <- diff(smoothed_starts)
+        differences <- c(differences, differences[length(differences)])
+        rounded_differences <- pmax(round(differences), 0)
+        frags$bptonext <- rounded_differences
+        return(frags)
+      }
+
+    # Convert bptonext into a list format
+    bptonext_as_list <-
+      function(frags) {
+        list_data <- frags %>%
+          mutate(depth = .data$overlapcount + 1) %>%
+          dplyr::filter(.data$depth <= 6) %>%
+          group_by(.data$BC, .data$depth) %>%
+          summarize(bptonext = list(.data$bptonext), .groups = "drop")
+
+        widened_data <- pivot_wider(
+          list_data,
+          names_prefix = "bptonextdepth",
+          names_from = .data$depth,
+          values_from = .data$bptonext
+        )
+
+        for (i in setdiff(paste0("bptonextdepth", 1:6), colnames(widened_data))) {
+          widened_data[[i]] <- list(NULL)
+        }
+
+        return(widened_data)
+      }
+
+    frags <- compute_smoothed_distance(frags)
+    bptonext_list_data <- bptonext_as_list(frags)
+    fragsbyBC <-
+      left_join(fragsbyBC, bptonext_list_data, by = 'BC')
+
     sumoverlaplist = c(sumoverlaplist, list(fragsbyBC))
     setTxtProgressBar(pb, i)
   }
@@ -156,7 +198,13 @@ fragmentoverlapcount = function (file,
               depth3 = sum(.data$depth3),
               depth4 = sum(.data$depth4),
               depth5 = sum(.data$depth5),
-              depth6 = sum(.data$depth6))
+              depth6 = sum(.data$depth6),
+              bptonextdepth1 = list(do.call(c, .data$bptonextdepth1)),
+              bptonextdepth2 = list(do.call(c, .data$bptonextdepth2)),
+              bptonextdepth3 = list(do.call(c, .data$bptonextdepth3)),
+              bptonextdepth4 = list(do.call(c, .data$bptonextdepth4)),
+              bptonextdepth5 = list(do.call(c, .data$bptonextdepth5)),
+              bptonextdepth6 = list(do.call(c, .data$bptonextdepth6)))
   sumoverlap = sumoverlap %>%
     rename(barcode = .data$BC)
   return(sumoverlap)
@@ -232,7 +280,7 @@ ploidy = function (fragmentoverlap,
   # Since we cannot properly count observations with zero success,
   # we model as truncated binomial distribution.
   # We use the moment method in Paul R. Rider (1955).
-  x = as.matrix(fragmentoverlap[, -(1:2)])
+  x = as.matrix(fragmentoverlap[, 3:8])
   T1 = as.numeric(x %*% seq(1, ncol(x)))
   T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
   T2T1 = T2 / T1 - 1

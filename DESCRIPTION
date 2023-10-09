@@ -22,6 +22,7 @@ Imports:
     matrixStats,
     mixtools,
     rlang,
+    tidyr,
     Rsamtools,
     utils
 Suggests: 

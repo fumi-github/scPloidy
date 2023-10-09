@@ -20,7 +20,7 @@ test_that("fragmentoverlapcount works", {
       test_path("testdata/SHR_m154211.10cells.chr19_20.fragments.txt.gz"),
       targetregions,
       excluderegions = simpleRepeat,
-      Tn5offset = c(0, -9)),
+      Tn5offset = c(0, -9))[, 1:8],
     resfragmentoverlapcount)
 })
 
