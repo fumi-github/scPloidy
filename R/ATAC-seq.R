@@ -161,18 +161,15 @@ fragmentoverlapcount = function (file,
           dplyr::filter(.data$depth <= 6) %>%
           group_by(.data$BC, .data$depth) %>%
           summarize(bptonext = list(.data$bptonext), .groups = "drop")
-
         widened_data <- pivot_wider(
           list_data,
           names_prefix = "bptonextdepth",
           names_from = .data$depth,
           values_from = .data$bptonext
         )
-
         for (i in setdiff(paste0("bptonextdepth", 1:6), colnames(widened_data))) {
           widened_data[[i]] <- list(NULL)
         }
-
         return(widened_data)
       }
 
