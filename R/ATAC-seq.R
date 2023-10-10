@@ -277,48 +277,75 @@ ploidy = function (fragmentoverlap,
   # Since we cannot properly count observations with zero success,
   # we model as truncated binomial distribution.
   # We use the moment method in Paul R. Rider (1955).
+
+  # Computes a "capped" version of the log-transformed T2T1 values.
+  # The capping is done based on the interquartile range of the log-transformed values.
+  computelogT2T1capped = function (T2T1) {
+    logT2T1capped = log(T2T1)
+    x = 2 * quantile(log(T2T1), 0.75) -
+      quantile(log(T2T1), 0.5)
+    logT2T1capped =
+      pmin(logT2T1capped , x)
+    x = 2 * quantile(log(T2T1), 0.25) -
+      quantile(log(T2T1), 0.5)
+    logT2T1capped =
+      pmax(logT2T1capped, x)
+    # Although unlikely, adjust if -Inf remains.
+    x = min(logT2T1capped[is.finite(logT2T1capped)])
+    logT2T1capped =
+      pmax(logT2T1capped, x)
+    return(logT2T1capped)
+  }
+
+  # Optimizes an offset for the log-transformed T2T1 values so that the
+  # squared differences from the log(levels-1) are minimized.
+  offsetoptimize = function (logT2T1capped, levels) {
+    m = matrix(
+      logT2T1capped,
+      nrow = length(levels),
+      ncol = length(logT2T1capped),
+      byrow = TRUE)
+    offsetoptimize =
+      optimize(
+        function (o) {
+          x = m + o - log(levels - 1)
+          return(sum(matrixStats::colMins(x^2))) },
+        lower = min(log(levels - 1)) -
+          max(logT2T1capped),
+        upper = max(log(levels - 1)) -
+          min(logT2T1capped))
+    return(offsetoptimize)
+  }
+
+  # Infers the ploidy using the optimized offset and the provided levels.
+  # It computes the closest level for each log-transformed value by
+  # minimizing the absolute differences.
+  inferpmoment = function (logT2T1capped, levels, offsetoptimize) {
+    m = matrix(
+      logT2T1capped,
+      nrow = length(levels),
+      ncol = length(logT2T1capped),
+      byrow = TRUE)
+    p.moment =
+      apply(
+        abs(m + offsetoptimize$minimum - log(levels - 1)),
+        2,
+        which.min)
+    p.moment = levels[p.moment]
+    return(p.moment)
+  }
+
   x = as.matrix(fragmentoverlap[, 3:8])
   T1 = as.numeric(x %*% seq(1, ncol(x)))
   T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
   T2T1 = T2 / T1 - 1
+  logT2T1capped = computelogT2T1capped(T2T1)
+  offsetopt = offsetoptimize(logT2T1capped, levels)
+  p.moment = inferpmoment(logT2T1capped, levels, offsetopt)
 
-  logT2T1capped = log(T2T1)
-  x = 2 * quantile(log(T2T1), 0.75) -
-    quantile(log(T2T1), 0.5)
-  logT2T1capped =
-    pmin(logT2T1capped , x)
-  x = 2 * quantile(log(T2T1), 0.25) -
-    quantile(log(T2T1), 0.5)
-  logT2T1capped =
-    pmax(logT2T1capped, x)
-  # Although unlikely, adjust if -Inf remains.
-  x = min(logT2T1capped[is.finite(logT2T1capped)])
-  logT2T1capped =
-    pmax(logT2T1capped, x)
-
-  m = matrix(
-    logT2T1capped,
-    nrow = length(levels),
-    ncol = length(logT2T1capped),
-    byrow = TRUE)
-  offsetoptimize =
-    optimize(
-      function (o) {
-        x = m + o - log(levels - 1)
-        return(sum(matrixStats::colMins(x^2))) },
-      lower = min(log(levels - 1)) -
-        max(logT2T1capped),
-      upper = max(log(levels - 1)) -
-        min(logT2T1capped))
-  p.moment =
-    apply(
-      abs(m + offsetoptimize$minimum - log(levels - 1)),
-      2,
-      which.min)
-  p.moment = levels[p.moment]
-  # exp(offsetoptimize$minimum) is the estimate for 1/s
+  # exp(offsetopt$minimum) is the estimate for 1/s
   p.momentfractional =
-    T2T1 * exp(offsetoptimize$minimum) + 1
+    T2T1 * exp(offsetopt$minimum) + 1
 
   ### EM ALGORITHM FOR MIXTURES
   # We superficially (and possibly robustly) model
