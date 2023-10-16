@@ -64,6 +64,7 @@ fragmentoverlapcount = function (file,
                      header = FALSE)
     frags = frags[, 1:4]
     colnames(frags) = c("chr", "start", "end", "BC")
+    rm(res)
 
     if (! is.null(targetbarcodes)) {
       frags = frags[frags$BC %in% targetbarcodes, ]
@@ -145,11 +146,10 @@ fragmentoverlapcount = function (file,
     # which is the inverse of chromatin accessibility.
     compute_smoothed_distance <-
       function(frags) {
-        smoothed_starts <- ksmooth(1:nrow(frags), frags$start, bandwidth = 20)$y
+        smoothed_starts <- ksmooth(1:nrow(frags), frags$start, bandwidth = 200)$y
         differences <- diff(smoothed_starts)
         differences <- c(differences, differences[length(differences)])
-        rounded_differences <- pmax(round(differences), 0)
-        frags$bptonext <- rounded_differences
+        frags$bptonext <- pmax(differences, 0)
         return(frags)
       }
 
