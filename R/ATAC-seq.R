@@ -280,20 +280,16 @@ ploidy = function (fragmentoverlap,
 
   # Computes a "capped" version of the log-transformed T2T1 values.
   # The capping is done based on the interquartile range of the log-transformed values.
-  computelogT2T1capped = function (T2T1) {
-    logT2T1capped = log(T2T1)
-    x = 2 * quantile(log(T2T1), 0.75) -
-      quantile(log(T2T1), 0.5)
-    logT2T1capped =
-      pmin(logT2T1capped , x)
-    x = 2 * quantile(log(T2T1), 0.25) -
-      quantile(log(T2T1), 0.5)
-    logT2T1capped =
-      pmax(logT2T1capped, x)
+  cap = function (logT2T1) {
+    x = 2 * quantile(logT2T1, 0.75) -
+      quantile(logT2T1, 0.5)
+    logT2T1capped = pmin(logT2T1, x)
+    x = 2 * quantile(logT2T1, 0.25) -
+      quantile(logT2T1, 0.5)
+    logT2T1capped = pmax(logT2T1capped, x)
     # Although unlikely, adjust if -Inf remains.
     x = min(logT2T1capped[is.finite(logT2T1capped)])
-    logT2T1capped =
-      pmax(logT2T1capped, x)
+    logT2T1capped = pmax(logT2T1capped, x)
     return(logT2T1capped)
   }
 
@@ -338,14 +334,14 @@ ploidy = function (fragmentoverlap,
   x = as.matrix(fragmentoverlap[, 3:8])
   T1 = as.numeric(x %*% seq(1, ncol(x)))
   T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
-  T2T1 = T2 / T1 - 1
-  logT2T1capped = computelogT2T1capped(T2T1)
+  logT2T1 = log(T2 / T1 - 1)
+  logT2T1capped = cap(logT2T1)
   offsetopt = offsetoptimize(logT2T1capped, levels)
   p.moment = inferpmoment(logT2T1capped, levels, offsetopt)
 
   # exp(offsetopt$minimum) is the estimate for 1/s
   p.momentfractional =
-    T2T1 * exp(offsetopt$minimum) + 1
+    exp(logT2T1) * exp(offsetopt$minimum) + 1
 
   ### EM ALGORITHM FOR MIXTURES
   # We superficially (and possibly robustly) model
