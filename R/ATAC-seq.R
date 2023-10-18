@@ -293,14 +293,14 @@ ploidy = function (fragmentoverlap,
     return(logT2T1capped)
   }
 
-  # Optimizes an offset for the log-transformed T2T1 values so that the
-  # squared differences from the log(levels-1) are minimized.
-  offsetoptimize = function (logT2T1capped, levels) {
+  inferpmoment = function (logT2T1capped, levels) {
     m = matrix(
       logT2T1capped,
       nrow = length(levels),
       ncol = length(logT2T1capped),
       byrow = TRUE)
+    # Optimizes an offset for the log-transformed T2T1 values so that the
+    # squared differences from the log(levels-1) are minimized.
     offsetoptimize =
       optimize(
         function (o) {
@@ -310,25 +310,18 @@ ploidy = function (fragmentoverlap,
           max(logT2T1capped),
         upper = max(log(levels - 1)) -
           min(logT2T1capped))
-    return(offsetoptimize)
-  }
-
-  # Infers the ploidy using the optimized offset and the provided levels.
-  # It computes the closest level for each log-transformed value by
-  # minimizing the absolute differences.
-  inferpmoment = function (logT2T1capped, levels, offsetoptimize) {
-    m = matrix(
-      logT2T1capped,
-      nrow = length(levels),
-      ncol = length(logT2T1capped),
-      byrow = TRUE)
+    # Infers the ploidy using the optimized offset and the provided levels.
+    # It computes the closest level for each log-transformed value by
+    # minimizing the absolute differences.
     p.moment =
       apply(
         abs(m + offsetoptimize$minimum - log(levels - 1)),
         2,
         which.min)
     p.moment = levels[p.moment]
-    return(p.moment)
+    return(list(
+      p.moment = p.moment,
+      offset = offsetoptimize$minimum))
   }
 
   x = as.matrix(fragmentoverlap[, 3:8])
@@ -336,12 +329,13 @@ ploidy = function (fragmentoverlap,
   T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
   logT2T1 = log(T2 / T1 - 1)
   logT2T1capped = cap(logT2T1)
-  offsetopt = offsetoptimize(logT2T1capped, levels)
-  p.moment = inferpmoment(logT2T1capped, levels, offsetopt)
+  x = inferpmoment(logT2T1capped, levels)
+  p.moment = x$p.moment
+  offset = x$offset
 
-  # exp(offsetopt$minimum) is the estimate for 1/s
+  # exp(offset) is the estimate for 1/s
   p.momentfractional =
-    exp(logT2T1) * exp(offsetopt$minimum) + 1
+    exp(logT2T1) * exp(offset) + 1
 
   ### EM ALGORITHM FOR MIXTURES
   # We superficially (and possibly robustly) model
