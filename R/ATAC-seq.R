@@ -225,6 +225,22 @@ fragmentoverlapcount = function (file,
     return(ct)
   }
 
+# A utility function.
+# Computes a "capped" version of the log-transformed T2T1 values.
+# The capping is done based on the interquartile range of the log-transformed values.
+.cap = function (logT2T1) {
+  x = 2 * quantile(logT2T1, 0.75) -
+    quantile(logT2T1, 0.5)
+  logT2T1capped = pmin(logT2T1, x)
+  x = 2 * quantile(logT2T1, 0.25) -
+    quantile(logT2T1, 0.5)
+  logT2T1capped = pmax(logT2T1capped, x)
+  # Although unlikely, adjust if -Inf remains.
+  x = min(logT2T1capped[is.finite(logT2T1capped)])
+  logT2T1capped = pmax(logT2T1capped, x)
+  return(logT2T1capped)
+}
+
 #' Infer Ploidy from ATAC-seq Fragment Overlap
 #'
 #' @param fragmentoverlap Frequency of fragment overlap in each cell
@@ -277,21 +293,6 @@ ploidy = function (fragmentoverlap,
   # we model as truncated binomial distribution.
   # We use the moment method in Paul R. Rider (1955).
 
-  # Computes a "capped" version of the log-transformed T2T1 values.
-  # The capping is done based on the interquartile range of the log-transformed values.
-  cap = function (logT2T1) {
-    x = 2 * quantile(logT2T1, 0.75) -
-      quantile(logT2T1, 0.5)
-    logT2T1capped = pmin(logT2T1, x)
-    x = 2 * quantile(logT2T1, 0.25) -
-      quantile(logT2T1, 0.5)
-    logT2T1capped = pmax(logT2T1capped, x)
-    # Although unlikely, adjust if -Inf remains.
-    x = min(logT2T1capped[is.finite(logT2T1capped)])
-    logT2T1capped = pmax(logT2T1capped, x)
-    return(logT2T1capped)
-  }
-
   inferpmoment = function (logT2T1capped, levels) {
     m = matrix(
       logT2T1capped,
@@ -327,7 +328,7 @@ ploidy = function (fragmentoverlap,
   T1 = as.numeric(x %*% seq(1, ncol(x)))
   T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
   logT2T1 = log(T2 / T1 - 1)
-  logT2T1capped = cap(logT2T1)
+  logT2T1capped = .cap(logT2T1)
   x = inferpmoment(logT2T1capped, levels)
   p.moment = x$p.moment
   offset = x$offset
