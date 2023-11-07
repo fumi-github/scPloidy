@@ -164,8 +164,8 @@ fragmentoverlapcount = function (file,
         widened_data <- pivot_wider(
           list_data,
           names_prefix = "bptonextdepth",
-          names_from = .data$depth,
-          values_from = .data$bptonext
+          names_from = "depth",
+          values_from = "bptonext"
         )
         for (i in setdiff(paste0("bptonextdepth", 1:6), colnames(widened_data))) {
           widened_data[[i]] <- list(NULL)
@@ -203,7 +203,7 @@ fragmentoverlapcount = function (file,
               bptonextdepth5 = list(do.call(c, .data$bptonextdepth5)),
               bptonextdepth6 = list(do.call(c, .data$bptonextdepth6)))
   sumoverlap = sumoverlap %>%
-    rename(barcode = .data$BC)
+    rename(barcode = "BC")
   return(sumoverlap)
 }
 
