@@ -52,7 +52,7 @@ fragmentoverlapcount = function (file,
                                  excluderegions = NULL,
                                  targetbarcodes = NULL,
                                  Tn5offset = c(1, 0)) {
-  sumoverlaplist = list()
+  fragmentoverlaplist = list()
   tbx = TabixFile(file = file)
   pb = txtProgressBar(max = length(targetregions), style = 3)
   for (i in 1:length(targetregions)) {
@@ -178,16 +178,16 @@ fragmentoverlapcount = function (file,
     fragsbyBC <-
       left_join(fragsbyBC, bptonext_list_data, by = 'BC')
 
-    sumoverlaplist = c(sumoverlaplist, list(fragsbyBC))
+    fragmentoverlaplist = c(fragmentoverlaplist, list(fragsbyBC))
     setTxtProgressBar(pb, i)
   }
   close(pb)
-  if (identical(sumoverlaplist, list())) {
+  if (identical(fragmentoverlaplist, list())) {
     stop('Error: no fragments remained after filtering')
   }
 
-  sumoverlap =
-    do.call(rbind, sumoverlaplist) %>%
+  fragmentoverlap =
+    do.call(rbind, fragmentoverlaplist) %>%
     group_by(.data$BC) %>%
     summarize(nfrags = sum(.data$nfrags),
               depth1 = sum(.data$depth1),
@@ -202,9 +202,9 @@ fragmentoverlapcount = function (file,
               bptonextdepth4 = list(do.call(c, .data$bptonextdepth4)),
               bptonextdepth5 = list(do.call(c, .data$bptonextdepth5)),
               bptonextdepth6 = list(do.call(c, .data$bptonextdepth6)))
-  sumoverlap = sumoverlap %>%
+  fragmentoverlap = fragmentoverlap %>%
     rename(barcode = "BC")
-  return(sumoverlap)
+  return(fragmentoverlap)
 }
 
 # A utility function.
