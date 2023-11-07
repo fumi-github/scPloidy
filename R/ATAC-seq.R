@@ -344,16 +344,16 @@ ploidy = function (fragmentoverlap,
   # but if the clusters don't separate,
   # next try (depth3, depth4, depth5), and so on.
   for (j in 4:6) {
-    sumoverlapsubmatrix =
+    fragmentoverlapsubmatrix =
       as.matrix(fragmentoverlap[, 0:2 + j])
     lambda = NULL
     theta = NULL
     if (is.numeric(subsamplesize)) {
-      while (subsamplesize < nrow(sumoverlapsubmatrix)) {
+      while (subsamplesize < nrow(fragmentoverlapsubmatrix)) {
         set.seed(s)
         em.out.small = multmixEM(
-          y = sumoverlapsubmatrix[
-            sample(nrow(sumoverlapsubmatrix), subsamplesize), ],
+          y = fragmentoverlapsubmatrix[
+            sample(nrow(fragmentoverlapsubmatrix), subsamplesize), ],
           lambda = lambda,
           theta = theta,
           k = length(levels),
@@ -365,7 +365,7 @@ ploidy = function (fragmentoverlap,
     }
     set.seed(s)
     em.out = multmixEM(
-      y = sumoverlapsubmatrix,
+      y = fragmentoverlapsubmatrix,
       lambda = lambda,
       theta = theta,
       k = length(levels),
