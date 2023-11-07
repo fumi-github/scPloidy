@@ -142,41 +142,40 @@ fragmentoverlapcount = function (file,
                 depth5 = sum(.data$overlapcount == 4),
                 depth6 = sum(.data$overlapcount == 5))
 
-    # Compute smoothed distance to the next fragment (irrelevant to BC),
+    # Compute smoothed distance to the next fragment (irrelevant to BC) as bptonext,
     # which is the inverse of chromatin accessibility.
-    compute_smoothed_distance <-
+    compute_smoothed_distance =
       function(frags) {
-        smoothed_starts <- ksmooth(1:nrow(frags), frags$start, bandwidth = 200)$y
-        differences <- diff(smoothed_starts)
-        differences <- c(differences, differences[length(differences)])
-        frags$bptonext <- pmax(differences, 0)
+        smoothed_starts = ksmooth(1:nrow(frags), frags$start, bandwidth = 200)$y
+        differences = diff(smoothed_starts)
+        differences = c(differences, differences[length(differences)])
+        frags$bptonext = pmax(differences, 0)
         return(frags)
       }
 
     # Convert bptonext into a list format
-    bptonext_as_list <-
+    bptonext_as_list =
       function(frags) {
-        list_data <- frags %>%
+        list_data = frags %>%
           mutate(depth = .data$overlapcount + 1) %>%
           dplyr::filter(.data$depth <= 6) %>%
           group_by(.data$BC, .data$depth) %>%
           summarize(bptonext = list(.data$bptonext), .groups = "drop")
-        widened_data <- pivot_wider(
+        widened_data = pivot_wider(
           list_data,
           names_prefix = "bptonextdepth",
           names_from = "depth",
           values_from = "bptonext"
         )
         for (i in setdiff(paste0("bptonextdepth", 1:6), colnames(widened_data))) {
-          widened_data[[i]] <- list(NULL)
+          widened_data[[i]] = list(NULL)
         }
         return(widened_data)
       }
 
-    frags <- compute_smoothed_distance(frags)
-    bptonext_list_data <- bptonext_as_list(frags)
-    fragsbyBC <-
-      left_join(fragsbyBC, bptonext_list_data, by = 'BC')
+    frags = compute_smoothed_distance(frags)
+    bptonext_list_data = bptonext_as_list(frags)
+    fragsbyBC = left_join(fragsbyBC, bptonext_list_data, by = 'BC')
 
     fragmentoverlaplist = c(fragmentoverlaplist, list(fragsbyBC))
     setTxtProgressBar(pb, i)
