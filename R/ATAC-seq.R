@@ -266,7 +266,8 @@ fragmentoverlapcount = function (file,
 #'
 #' @importFrom matrixStats colMins
 #' @importFrom mixtools multmixEM
-#' @importFrom stats kmeans optimize quantile
+#' @importFrom nimble ilogit nimbleCode nimbleMCMC
+#' @importFrom stats dbinom dpois kmeans optimize plogis quantile
 #' @export
 ploidy = function (fragmentoverlap,
                    levels,
@@ -275,6 +276,76 @@ ploidy = function (fragmentoverlap,
                    subsamplesize = NULL) {
   if (min(levels) <= 1) {
     stop('Error: elements of levels must be larger than one')
+  }
+
+  ### SUBTOTAL fragmentoverlap BY bptonext CLASSES
+  if (ncol(fragmentoverlap) > 8) {
+    # Unnest bptonext, classify by breaks, and count.
+    countbybptonext = function (data, breaks) {
+      colnames(data) = c("barcode", "bptonext")
+      data = tidyr::unnest(data, "bptonext")
+      if (nrow(data) > 0) {
+        data$bptonextclass = cut(data$bptonext, breaks, include.lowest = TRUE)
+      } else {
+        data$bptonextclass = character(0)
+      }
+      data = data %>%
+        group_by(.data$barcode, .data$bptonextclass) %>%
+        summarize(n = n(), .groups = "drop")
+      return(data)
+    }
+    # Compute deciles of bptonextall.
+    bptonextall =
+      do.call(c,
+              lapply(fragmentoverlap[, 9:14],
+                     function (x) { do.call(c, x) }))
+    breaks = unique(quantile(bptonextall, seq(0, 1, 0.1)))
+    rm(bptonextall)
+    gc()
+    # grouping in rows by value: barcode, bptonextclass, depth
+    # value: n
+    fragmentoverlapbybptonext =
+      do.call(
+        rbind,
+        lapply(
+          1:6,
+          function (d) {
+            x = countbybptonext(
+              fragmentoverlap[, c("barcode", paste0("bptonextdepth", d))],
+              breaks)
+            x$depth = d
+            return(x)
+          }))
+    # grouping in rows by value: barcode, bptonextclass
+    # grouping in columns by name: depth
+    # value: n
+    fragmentoverlapbybptonext =
+      pivot_wider(
+        fragmentoverlapbybptonext,
+        names_from = "depth",
+        names_prefix = "depth",
+        values_from = "n")
+    fragmentoverlapbybptonext[is.na(fragmentoverlapbybptonext)] = 0
+    bptonextlevels =
+      levels(fragmentoverlapbybptonext$bptonextclass)
+    # grouping in list: bptonextclass
+    # grouping in rows by value: barcode
+    # grouping in columns by name: depth
+    # value: n
+    fragmentoverlapbybptonext = lapply(
+      bptonextlevels,
+      function (l) {
+        x =
+          fragmentoverlapbybptonext[
+            fragmentoverlapbybptonext$bptonextclass == l, ]
+        # Make barcode consistent with fragmentoverlap
+        x = x[match(fragmentoverlap$barcode, x$barcode), ]
+        x[is.na(x)] = 0
+        m = as.matrix(x[, -c(1:2)])
+        rownames(m) = x$barcode
+        return(m)
+      })
+    names(fragmentoverlapbybptonext) = bptonextlevels
   }
 
   ### MOMENT BASED METHOD
