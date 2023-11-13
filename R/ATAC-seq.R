@@ -463,10 +463,195 @@ ploidy = function (fragmentoverlap,
           function (x) {rowMeans(do.call(cbind, x))})))
   p.kmeans = levels[kmclust$cluster]
 
+  if (ncol(fragmentoverlap) <= 8) {
+
+    return(data.frame(
+      barcode = fragmentoverlap$barcode,
+      ploidy.moment = p.moment,
+      ploidy.momentfractional = p.momentfractional,
+      ploidy.kmeans = p.kmeans,
+      ploidy.em = p.em))
+
+  } else {
+
+  # library(tidyverse)
+  # plotdata = as.data.frame(fragmentoverlapbybptonext[[1]]) # signal in 1:3, maybe 4:5
+  # plotdata$barcode = rownames(plotdata)
+  # plotdata$answer = as.numeric(sub(".*_", "", sub("x_.*", "", plotdata$barcode)))
+  # plotdata = pivot_longer(
+  #   plotdata,
+  #   cols = c(depth1, depth2, depth3, depth4, depth5, depth6))
+  # plotdata$x = as.numeric(sub("depth", "", plotdata$name))
+  # ggplot(data = plotdata,
+  #        aes(x = x, y = value)) +
+  #   geom_line(aes(col = barcode), linewidth = 0.05) +
+  #   facet_grid(rows = vars(answer)) +
+  #   guides(color = "none") +
+  #   ylab("fx")
+
+  # grouping in list: bptonextclass
+  # name: barcode
+  # value: logT2T1
+  logT2T1bybptonext = lapply(
+    fragmentoverlapbybptonext,
+    function (x) {
+      T1 = as.numeric(x %*% seq(1, ncol(x)))
+      T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
+      T2T1 = T2 / T1 - 1
+      logT2T1 = log(T2T1)
+      names(logT2T1) = rownames(x)
+      return(logT2T1)
+    }
+  )
+
+  # Measure difference between logT2T1bybptonext[[1]] and logT2T1bybptonext[[i]]
+  centralizedL1 =
+    function (x, y) {
+      f = is.finite(x) & is.finite(y)
+      x = x[f]
+      y = y[f]
+      return(mean(abs((x - mean(x)) - (y - mean(y)))))
+    }
+  for (i in 2:length(logT2T1bybptonext)) {
+    print(centralizedL1(logT2T1bybptonext[[1]], logT2T1bybptonext[[i]]))
+  }
+
+  ### MOMENT BASED METHOD
+  meanfinite = function (x) { mean(x[is.finite(x)]) }
+  x =
+    lapply(
+      c(logT2T1bybptonext,
+        list(
+          (logT2T1bybptonext[[1]] - meanfinite(logT2T1bybptonext[[1]]) +
+             logT2T1bybptonext[[2]] - meanfinite(logT2T1bybptonext[[2]])) / 2,
+          (logT2T1bybptonext[[2]] - meanfinite(logT2T1bybptonext[[2]]) +
+             logT2T1bybptonext[[3]] - meanfinite(logT2T1bybptonext[[3]])) / 2,
+          (logT2T1bybptonext[[1]] - meanfinite(logT2T1bybptonext[[1]]) +
+             logT2T1bybptonext[[2]] - meanfinite(logT2T1bybptonext[[2]]) +
+             logT2T1bybptonext[[3]] - meanfinite(logT2T1bybptonext[[3]])) / 3)),
+      function (logT2T1) {
+        return(inferpmoment(.cap(logT2T1), levels))
+      })
+  p.moment.bybptonext = lapply(x, function(y) { y$p.moment })
+  offset.bybptonext = as.numeric(lapply(x, function(y) { y$offset }))
+
+  ### BAYESIAN
+  # TODO cells with no observation (rowSums(data) == 0) might cause error.
+  ploidy_bayes = function (data, levels) {
+
+    Code = nimbleCode({
+      alpha1 ~ dnorm(0, 10)
+      # alpha2 ~ dnorm(0, 10)
+      # prop ~ dunif(0.1, 0.9)
+      for (i in 1:Ncell) {
+        ind[i] ~ dcat(ploidyprior[])
+        ploidy[i] = ploidylevels[ind[i]]
+        # ploidy[i] ~ T(dpois(2), 2, )
+        for (j in 1:6) {
+          prob1raw[i, j] =
+            prop *
+            dbinom(x = j, prob = ilogit(alpha1), size = ploidy[i], log = 0) +
+            (1 - prop) *
+            dpois(x = j, lambda = averagedepth1[i], log = 0)
+          # prob2raw[i, j] =
+          #   prop *
+          #   dbinom(x = j, prob = ilogit(alpha2), size = ploidy[i], log = 0) +
+          #   (1 - prop) *
+          #   dpois(x = j, lambda = averagedepth2[i], log = 0)
+        }
+        prob1sum[i] = sum(prob1raw[i, 1:6])
+        # prob2sum[i] = sum(prob2raw[i, 1:6])
+        for (j in 1:6) {
+          prob1[i, j] = prob1raw[i, j] / prob1sum[i]
+          # prob2[i, j] = prob2raw[i, j] / prob2sum[i]
+        }
+        y[i, 1:6]  ~ dmulti(prob = prob1[i, 1:6], size = Nfrag1[i])
+        # y[i, 7:12] ~ dmulti(prob = prob2[i, 1:6], size = Nfrag2[i])
+      }
+    })
+
+    Ncell = nrow(data)
+    T1_1 = as.numeric(data[, 1:6] %*% seq(1, 6))
+    T2_1 = as.numeric(data[, 1:6] %*% (seq(1, 6)^2))
+    T2T1_1 = T2_1 / T1_1 - 1
+    # T1_2 = as.numeric(data[, 7:12] %*% seq(1, 6))
+    # T2_2 = as.numeric(data[, 7:12] %*% (seq(1, 6)^2))
+    # T2T1_2 = T2_2 / T1_2 - 1
+    Consts = list(
+      prop = 0.5, # 0.9
+      ploidyprior = rep(1/length(levels), length(levels)),
+      Ncell = Ncell,
+      Nfrag1 = rowSums(data[, 1:6]),
+      # Nfrag2 = rowSums(data[, 7:12]),
+      averagedepth1 = T2T1_1) # bayes_averagedepthnotcapped_alphaonly; better
+    # averagedepth2 = T2T1_2)
+    # averagedepth1 = exp(.cap(log(T2T1_1)))) # bayes_averagedepthcap_alphaonly; worse
+    Data = list(
+      ploidylevels = levels,
+      y = data)
+    Inits = list(
+      ind = sample(length(levels), Ncell, replace = TRUE))
+    # ind = match(inits, levels)) # inits_moment.1; Surprisingly, no difference
+    mcmc.out = nimbleMCMC(
+      code = Code,
+      constants = Consts,
+      data = Data,
+      inits = Inits,
+      nchains = 4, niter = 30000, nburnin = 20000,
+      setSeed = TRUE,
+      summary = TRUE, WAIC = TRUE,
+      monitors = 'ind')
+    # monitors = c('alpha1', 'ind'))
+    # monitors = c('alpha1', 'alpha2', 'ind'))
+    # monitors = c('alpha1', 'prop', 'ind'))
+
+    # v = "alpha1"
+    # v = "beta"
+    # ggplot(data = data.frame(
+    #   x = 1:nrow(mcmc.out$samples$chain1),
+    #   y1 = mcmc.out$samples$chain1[, v],
+    #   y2 = mcmc.out$samples$chain2[, v],
+    #   y3 = mcmc.out$samples$chain3[, v],
+    #   y4 = mcmc.out$samples$chain4[, v]),
+    #   aes(x = x)) +
+    #   geom_line(aes(y = y1)) +
+    #   geom_line(aes(y = y2)) +
+    #   geom_line(aes(y = y3)) +
+    #   geom_line(aes(y = y4))
+    # mcmc.out$summary$all.chains
+    # plogis(mcmc.out$summary$all.chains["alpha1", "Mean"])
+
+    ploidy.bayes = levels[round((mcmc.out$summary$all.chains)[, "Median"])]
+    return(ploidy.bayes)
+
+  }
+
+  ploidy.bayes.1 = ploidy_bayes(fragmentoverlapbybptonext[[1]], levels)
+  ploidy.bayes.2 = ploidy_bayes(fragmentoverlapbybptonext[[2]], levels)
+  # ploidy.bayes.12 = ploidy_bayes(cbind(fragmentoverlapbybptonext[[1]], fragmentoverlapbybptonext[[2]]), levels)
+
   return(data.frame(
     barcode = fragmentoverlap$barcode,
     ploidy.moment = p.moment,
     ploidy.momentfractional = p.momentfractional,
     ploidy.kmeans = p.kmeans,
-    ploidy.em = p.em))
+    ploidy.em = p.em,
+    ploidy.moment.1 = p.moment.bybptonext[[1]], # best; better than ploidy.moment
+    ploidy.moment.2 = p.moment.bybptonext[[2]],
+    ploidy.moment.3 = p.moment.bybptonext[[3]],
+    ploidy.moment.4 = p.moment.bybptonext[[4]],
+    ploidy.moment.5 = p.moment.bybptonext[[5]],
+    ploidy.moment.6 = p.moment.bybptonext[[6]],
+    ploidy.moment.7 = p.moment.bybptonext[[7]],
+    ploidy.moment.8 = p.moment.bybptonext[[8]],
+    ploidy.moment.9 = p.moment.bybptonext[[9]],
+    ploidy.moment.10 = p.moment.bybptonext[[10]],
+    ploidy.moment.12 = p.moment.bybptonext[[11]], # not better than ploidy.moment.1
+    ploidy.moment.23 = p.moment.bybptonext[[12]], # not better than ploidy.moment.1
+    ploidy.moment.123 = p.moment.bybptonext[[13]], # not better than ploidy.moment.1
+    ploidy.bayes.1 = ploidy.bayes.1,
+    ploidy.bayes.2 = ploidy.bayes.2))
+  # ploidy.bayes.12 = ploidy.bayes.12))
+  }
+
 }
