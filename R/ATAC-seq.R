@@ -550,25 +550,25 @@ ploidy = function (fragmentoverlap,
       # prop ~ dunif(0.1, 0.9)
       for (i in 1:Ncell) {
         ind[i] ~ dcat(ploidyprior[])
-        ploidy[i] = ploidylevels[ind[i]]
+        ploidy[i] <- ploidylevels[ind[i]]
         # ploidy[i] ~ T(dpois(2), 2, )
         for (j in 1:6) {
-          prob1raw[i, j] =
+          prob1raw[i, j] <-
             prop *
             dbinom(x = j, prob = ilogit(alpha1), size = ploidy[i], log = 0) +
             (1 - prop) *
             dpois(x = j, lambda = averagedepth1[i], log = 0)
-          # prob2raw[i, j] =
+          # prob2raw[i, j] <-
           #   prop *
           #   dbinom(x = j, prob = ilogit(alpha2), size = ploidy[i], log = 0) +
           #   (1 - prop) *
           #   dpois(x = j, lambda = averagedepth2[i], log = 0)
         }
-        prob1sum[i] = sum(prob1raw[i, 1:6])
-        # prob2sum[i] = sum(prob2raw[i, 1:6])
+        prob1sum[i] <- sum(prob1raw[i, 1:6])
+        # prob2sum[i] <- sum(prob2raw[i, 1:6])
         for (j in 1:6) {
-          prob1[i, j] = prob1raw[i, j] / prob1sum[i]
-          # prob2[i, j] = prob2raw[i, j] / prob2sum[i]
+          prob1[i, j] <- prob1raw[i, j] / prob1sum[i]
+          # prob2[i, j] <- prob2raw[i, j] / prob2sum[i]
         }
         y[i, 1:6]  ~ dmulti(prob = prob1[i, 1:6], size = Nfrag1[i])
         # y[i, 7:12] ~ dmulti(prob = prob2[i, 1:6], size = Nfrag2[i])
