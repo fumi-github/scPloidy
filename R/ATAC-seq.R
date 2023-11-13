@@ -271,7 +271,7 @@ fragmentoverlapcount = function (file,
 #'
 #' @importFrom matrixStats colMins
 #' @importFrom mixtools multmixEM
-#' @importFrom nimble ilogit nimbleCode nimbleMCMC
+#' @import nimble
 #' @importFrom stats dbinom dpois kmeans optimize quantile
 #' @export
 ploidy = function (fragmentoverlap,
