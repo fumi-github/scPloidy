@@ -1,3 +1,8 @@
+if (getRversion() >= "2.15.1") {
+  # For nimble
+  utils::globalVariables(c("alpha1", "averagedepth1", "ind", "ploidylevels", "prop"))
+}
+
 #' Count Overlap of ATAC-seq Fragments
 #'
 #' @param file Filename of the file for ATAC-seq fragments.
