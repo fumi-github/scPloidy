@@ -4,7 +4,14 @@
 \alias{ploidy}
 \title{Infer Ploidy from ATAC-seq Fragment Overlap}
 \usage{
-ploidy(fragmentoverlap, levels, s = 100, epsilon = 1e-08, subsamplesize = NULL)
+ploidy(
+  fragmentoverlap,
+  levels,
+  s = 100,
+  epsilon = 1e-08,
+  subsamplesize = NULL,
+  prop = 0.9
+)
 }
 \arguments{
 \item{fragmentoverlap}{Frequency of fragment overlap in each cell

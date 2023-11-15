@@ -1,6 +1,6 @@
 if (getRversion() >= "2.15.1") {
   # For nimble
-  utils::globalVariables(c("alpha1", "averagedepth1", "ind", "ploidylevels", "prop"))
+  utils::globalVariables(c("alpha1", "averagedepth1", "ind", "ploidylevels"))
 }
 
 #' Count Overlap of ATAC-seq Fragments
@@ -278,7 +278,8 @@ ploidy = function (fragmentoverlap,
                    levels,
                    s = 100,
                    epsilon = 1e-08,
-                   subsamplesize = NULL) {
+                   subsamplesize = NULL,
+                   prop = 0.9) {
   if (min(levels) <= 1) {
     stop('Error: elements of levels must be larger than one')
   }
@@ -542,7 +543,8 @@ ploidy = function (fragmentoverlap,
 
   ### BAYESIAN
   # TODO cells with no observation (rowSums(data) == 0) might cause error.
-  ploidy_bayes = function (data, levels) {
+  # TODO prob1[ploidy, j] can replace prob1[cell, j]
+  ploidy_bayes = function (data, levels, prop) {
 
     Code = nimbleCode({
       alpha1 ~ dnorm(0, 10)
@@ -584,12 +586,12 @@ ploidy = function (fragmentoverlap,
     # T2_2 = as.numeric(data[, 7:12] %*% (seq(1, 6)^2))
     # T2T1_2 = T2_2 / T1_2 - 1
     Consts = list(
-      prop = 0.9,
+      prop = prop,
       ploidyprior = rep(1/length(levels), length(levels)),
       Ncell = Ncell,
-      Nfrag1 = rowSums(data[, 1:6]),
+      Nfrag1 = rowSums(data[, 1:6]))
       # Nfrag2 = rowSums(data[, 7:12]),
-      averagedepth1 = T2T1_1) # bayes_averagedepthnotcapped_alphaonly; better
+      # averagedepth1 = T2T1_1) # bayes_averagedepthnotcapped_alphaonly; better
     # averagedepth2 = T2T1_2)
     # averagedepth1 = exp(.cap(log(T2T1_1)))) # bayes_averagedepthcap_alphaonly; worse
     Data = list(
@@ -632,8 +634,8 @@ ploidy = function (fragmentoverlap,
 
   }
 
-  ploidy.bayes.1 = ploidy_bayes(fragmentoverlapbybptonext[[1]], levels)
-  ploidy.bayes.2 = ploidy_bayes(fragmentoverlapbybptonext[[2]], levels)
+  ploidy.bayes.1 = ploidy_bayes(fragmentoverlapbybptonext[[1]], levels, prop)
+  ploidy.bayes.2 = ploidy_bayes(fragmentoverlapbybptonext[[2]], levels, prop)
   # ploidy.bayes.12 = ploidy_bayes(cbind(fragmentoverlapbybptonext[[1]], fragmentoverlapbybptonext[[2]]), levels)
 
   return(data.frame(
