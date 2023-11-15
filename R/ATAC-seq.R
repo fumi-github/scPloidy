@@ -557,7 +557,8 @@ ploidy = function (fragmentoverlap,
             prop *
             dbinom(x = j, prob = ilogit(alpha1), size = ploidy[i], log = 0) +
             (1 - prop) *
-            dpois(x = j, lambda = averagedepth1[i], log = 0)
+            # dpois(x = j, lambda = averagedepth1[i], log = 0)
+            dpois(x = j, lambda = ilogit(alpha1) * ploidy[i], log = 0)
           # prob2raw[i, j] <-
           #   prop *
           #   dbinom(x = j, prob = ilogit(alpha2), size = ploidy[i], log = 0) +
