@@ -547,8 +547,8 @@ ploidy = function (fragmentoverlap,
   ploidy_bayes = function (data, levels, prop, inits) {
 
     Code = nimbleCode({
-      alpha1 ~ dnorm(0, 10)
-      # alpha2 ~ dnorm(0, 10)
+      alpha1 ~ dbeta(0.5, 0.5)
+      # alpha2 ~ dbeta(0.5, 0.5)
       # prop ~ dunif(0.1, 0.9)
       for (i in 1:Ncell) {
         ind[i] ~ dcat(ploidyprior[])
@@ -557,13 +557,13 @@ ploidy = function (fragmentoverlap,
         for (j in 1:6) {
           prob1raw[i, j] <-
             prop *
-            dbinom(x = j, prob = ilogit(alpha1), size = ploidy[i], log = 0) +
+            dbinom(x = j, prob = alpha1, size = ploidy[i], log = 0) +
             (1 - prop) *
             dpois(x = j, lambda = averagedepth1[i], log = 0)
-            # dpois(x = j, lambda = ilogit(alpha1) * ploidy[i], log = 0)
+            # dpois(x = j, lambda = alpha1 * ploidy[i], log = 0)
           # prob2raw[i, j] <-
           #   prop *
-          #   dbinom(x = j, prob = ilogit(alpha2), size = ploidy[i], log = 0) +
+          #   dbinom(x = j, prob = alpha2, size = ploidy[i], log = 0) +
           #   (1 - prop) *
           #   dpois(x = j, lambda = averagedepth2[i], log = 0)
         }
