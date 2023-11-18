@@ -544,7 +544,7 @@ ploidy = function (fragmentoverlap,
   ### BAYESIAN
   # TODO cells with no observation (rowSums(data) == 0) might cause error.
   # TODO prob1[ploidy, j] can replace prob1[cell, j]
-  ploidy_bayes = function (data, levels, prop) {
+  ploidy_bayes = function (data, levels, prop, inits) {
 
     Code = nimbleCode({
       alpha1 ~ dnorm(0, 10)
@@ -598,8 +598,8 @@ ploidy = function (fragmentoverlap,
       ploidylevels = levels,
       y = data)
     Inits = list(
-      ind = sample(length(levels), Ncell, replace = TRUE))
-    # ind = match(inits, levels)) # inits_moment.1; Surprisingly, no difference
+    # ind = sample(length(levels), Ncell, replace = TRUE))
+      ind = match(inits, levels)) # inits_moment.1; Surprisingly, no difference
     mcmc.out = nimbleMCMC(
       code = Code,
       constants = Consts,
@@ -634,8 +634,8 @@ ploidy = function (fragmentoverlap,
 
   }
 
-  ploidy.bayes.1 = ploidy_bayes(fragmentoverlapbybptonext[[1]], levels, prop)
-  ploidy.bayes.2 = ploidy_bayes(fragmentoverlapbybptonext[[2]], levels, prop)
+  ploidy.bayes.1 = ploidy_bayes(fragmentoverlapbybptonext[[1]], levels, prop, p.moment.bybptonext[[1]])
+  ploidy.bayes.2 = ploidy_bayes(fragmentoverlapbybptonext[[2]], levels, prop, p.moment.bybptonext[[1]])
   # ploidy.bayes.12 = ploidy_bayes(cbind(fragmentoverlapbybptonext[[1]], fragmentoverlapbybptonext[[2]]), levels)
 
   return(data.frame(
