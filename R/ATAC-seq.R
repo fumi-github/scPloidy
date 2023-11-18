@@ -543,7 +543,6 @@ ploidy = function (fragmentoverlap,
 
   ### BAYESIAN
   # TODO cells with no observation (rowSums(data) == 0) might cause error.
-  # TODO prob1[ploidy, j] can replace prob1[cell, j]
   ploidy_bayes = function (data, levels, prop, inits) {
 
     Code = nimbleCode({
