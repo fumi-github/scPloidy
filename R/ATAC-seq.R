@@ -559,8 +559,8 @@ ploidy = function (fragmentoverlap,
             prop *
             dbinom(x = j, prob = ilogit(alpha1), size = ploidy[i], log = 0) +
             (1 - prop) *
-            # dpois(x = j, lambda = averagedepth1[i], log = 0)
-            dpois(x = j, lambda = ilogit(alpha1) * ploidy[i], log = 0)
+            dpois(x = j, lambda = averagedepth1[i], log = 0)
+            # dpois(x = j, lambda = ilogit(alpha1) * ploidy[i], log = 0)
           # prob2raw[i, j] <-
           #   prop *
           #   dbinom(x = j, prob = ilogit(alpha2), size = ploidy[i], log = 0) +
@@ -589,9 +589,9 @@ ploidy = function (fragmentoverlap,
       prop = prop,
       ploidyprior = rep(1/length(levels), length(levels)),
       Ncell = Ncell,
-      Nfrag1 = rowSums(data[, 1:6]))
+      Nfrag1 = rowSums(data[, 1:6]),
       # Nfrag2 = rowSums(data[, 7:12]),
-      # averagedepth1 = T2T1_1) # bayes_averagedepthnotcapped_alphaonly; better
+      averagedepth1 = T2T1_1) # bayes_averagedepthnotcapped_alphaonly; better
     # averagedepth2 = T2T1_2)
     # averagedepth1 = exp(.cap(log(T2T1_1)))) # bayes_averagedepthcap_alphaonly; worse
     Data = list(
