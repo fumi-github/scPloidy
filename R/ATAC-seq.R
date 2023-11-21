@@ -546,8 +546,8 @@ ploidy = function (fragmentoverlap,
   ploidy_bayes = function (data, levels, prop, inits) {
 
     Code = nimbleCode({
-      alpha1 ~ dbeta(0.5, 0.5)
-      # alpha2 ~ dbeta(0.5, 0.5)
+      alpha1 ~ dbeta(shape1 = 2, shape2 = 2)
+      # alpha2 ~ dbeta(shape1 = 2, shape2 = 2)
       # prop ~ dunif(0.1, 0.9)
       for (i in 1:Ncell) {
         ind[i] ~ dcat(ploidyprior[])
