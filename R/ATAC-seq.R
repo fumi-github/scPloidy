@@ -596,14 +596,14 @@ ploidy = function (fragmentoverlap,
       Nfrag1 = rowSums(data[, 1:6]),
       # Nfrag2 = rowSums(data[, 7:12]),
       averagedepth1 = T2T1_1) # bayes_averagedepthnotcapped_alphaonly; better
-    # averagedepth2 = T2T1_2)
+      # averagedepth2 = T2T1_2)
     # averagedepth1 = exp(.cap(log(T2T1_1)))) # bayes_averagedepthcap_alphaonly; worse
     Data = list(
       ploidylevels = levels,
       y = data)
     Inits = list(
     # ind = sample(length(levels), Ncell, replace = TRUE))
-      ind = match(inits, levels)) # inits_moment.1; Surprisingly, no difference
+      ind = match(inits, levels))
     mcmc.out = nimbleMCMC(
       code = Code,
       constants = Consts,
@@ -613,9 +613,9 @@ ploidy = function (fragmentoverlap,
       setSeed = TRUE,
       summary = TRUE, WAIC = TRUE,
       monitors = 'ind')
-    # monitors = c('alpha1', 'ind'))
-    # monitors = c('alpha1', 'alpha2', 'ind'))
-    # monitors = c('alpha1', 'prop', 'ind'))
+      # monitors = c('alpha1', 'ind'))
+      # monitors = c('alpha1', 'alpha2', 'ind'))
+      # monitors = c('prop', 'ind'))
 
     # v = "alpha1"
     # v = "beta"
@@ -633,7 +633,9 @@ ploidy = function (fragmentoverlap,
     # mcmc.out$summary$all.chains
     # plogis(mcmc.out$summary$all.chains["alpha1", "Mean"])
 
-    ploidy.bayes = levels[round((mcmc.out$summary$all.chains)[, "Median"])]
+    # print(paste("prop: ", (mcmc.out$summary$all.chains)["prop", "Median"]))
+    x = grep("^ind", rownames(mcmc.out$summary$all.chains))
+    ploidy.bayes = levels[round((mcmc.out$summary$all.chains)[x, "Median"])]
     return(ploidy.bayes)
 
   }
