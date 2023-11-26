@@ -1,6 +1,6 @@
 if (getRversion() >= "2.15.1") {
   # For nimble
-  utils::globalVariables(c("alpha1", "averagedepth1", "ind", "ploidylevels"))
+  utils::globalVariables(c("alpha1", "averagedepth1", "equals", "ind", "ploidylevels"))
 }
 
 #' Count Overlap of ATAC-seq Fragments
@@ -546,33 +546,38 @@ ploidy = function (fragmentoverlap,
   ploidy_bayes = function (data, levels, prop, inits) {
 
     Code = nimbleCode({
-      alpha1 ~ dbeta(shape1 = 2, shape2 = 2)
-      # alpha2 ~ dbeta(shape1 = 2, shape2 = 2)
+      alpha1 ~ dbeta(shape1 = 0.5, shape2 = 0.5)
+      # alpha2 ~ dbeta(shape1 = 0.5, shape2 = 0.5)
       # prop ~ dunif(0.1, 0.9)
       for (i in 1:Ncell) {
         ind[i] ~ dcat(ploidyprior[])
         ploidy[i] <- ploidylevels[ind[i]]
         # ploidy[i] ~ T(dpois(2), 2, )
         for (j in 1:6) {
-          prob1raw[i, j] <-
-            prop *
-            dbinom(x = j, prob = alpha1, size = ploidy[i], log = 0) +
-            (1 - prop) *
-            dpois(x = j, lambda = averagedepth1[i], log = 0)
-            # dpois(x = j, lambda = alpha1 * ploidy[i], log = 0)
-          # prob2raw[i, j] <-
-          #   prop *
-          #   dbinom(x = j, prob = alpha2, size = ploidy[i], log = 0) +
-          #   (1 - prop) *
-          #   dpois(x = j, lambda = averagedepth2[i], log = 0)
+          probbinom1raw[i, j] <- dbinom(x = j, prob = alpha1, size = ploidy[i], log = 0)
+          # probbinom2raw[i, j] <- dbinom(x = j, prob = alpha1, size = ploidy[i], log = 0)
         }
-        prob1sum[i] <- sum(prob1raw[i, 1:6])
-        # prob2sum[i] <- sum(prob2raw[i, 1:6])
+
+        # avoid if
+        probpois1raw[i, 1]  <- dpois(x = 1, lambda = averagedepth1[i], log = 0) + equals(averagedepth1[i], 0)
+        # probpois1raw[i, 1]  <- dpois(x = 1, lambda = alpha1 * ploidy[i], log = 0)
+        for (j in 2:6) {
+          probpois1raw[i, j]  <- dpois(x = j, lambda = averagedepth1[i], log = 0)
+          # probpois1raw[i, j]  <- dpois(x = j, lambda = alpha1 * ploidy[i], log = 0)
+        }
+
+        probbinom1sum[i] <- sum(probbinom1raw[i, 1:6])
+        probpois1sum[i]  <- sum(probpois1raw[i, 1:6])
+        # probbinom2sum[i] <- sum(probbinom2raw[i, 1:6])
+        # probpois2sum[i]  <- sum(probpois2raw[i, 1:6])
         for (j in 1:6) {
-          prob1[i, j] <- prob1raw[i, j] / prob1sum[i]
-          # prob2[i, j] <- prob2raw[i, j] / prob2sum[i]
+          prob1[i, j] <-
+            prop * (probbinom1raw[i, j] / probbinom1sum[i]) +
+            (1 - prop) * (probpois1raw[i, j] / probpois1sum[i])
+          # prob2[i, j] <- prop * (probbinom2raw[i, j] / probbinom2sum[i]) +
+          #   (1 - prop) * (probpois2raw[i, j] / probpois2sum[i])
         }
-        y[i, 1:6]  ~ dmulti(prob = prob1[i, 1:6], size = Nfrag1[i])
+        y[i, 1:6] ~ dmulti(prob = prob1[i, 1:6], size = Nfrag1[i])
         # y[i, 7:12] ~ dmulti(prob = prob2[i, 1:6], size = Nfrag2[i])
       }
     })
