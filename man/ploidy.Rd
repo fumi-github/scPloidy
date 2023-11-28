@@ -33,6 +33,10 @@ first for \code{subsamplesize} randomly sampled cells,
 next for twice the number of cells in repetition.
 The inferred lambda/theta parameters are used as the initial value
 in the next repetition.}
+
+\item{prop}{Proportion of peaks that can be fitted with binomal
+distribution in ploidy.bayes. The rest of peaks are allowed to
+have depth larger than the ploidy.}
 }
 \value{
 A data.frame with each row corresponding to a cell.

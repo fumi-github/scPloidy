@@ -263,6 +263,9 @@ fragmentoverlapcount = function (file,
 #' next for twice the number of cells in repetition.
 #' The inferred lambda/theta parameters are used as the initial value
 #' in the next repetition.
+#' @param prop Proportion of peaks that can be fitted with binomal
+#' distribution in ploidy.bayes. The rest of peaks are allowed to
+#' have depth larger than the ploidy.
 #' @return A data.frame with each row corresponding to a cell.
 #' For each cell, its barcode, ploidy inferred by moment method,
 #' the same with additional K-means clustering,
