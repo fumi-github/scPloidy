@@ -40,6 +40,7 @@ if (getRversion() >= "2.15.1") {
 #' but is recorded as a BED file. In this case, use \code{c(1, 0)} (default value).
 #' If unsure, set to \code{"guess"},
 #' in which case the program returns a guess.
+#' @param barcodesuffix Add suffix to barcodes per targetregions.
 #' @return A tibble with each row corresponding to a cell.
 #' For each cell, its barcode, the total count of the fragments \code{nfrag},
 #' and the count distinguished by overlap depth are given.
@@ -56,7 +57,8 @@ fragmentoverlapcount = function (file,
                                  targetregions,
                                  excluderegions = NULL,
                                  targetbarcodes = NULL,
-                                 Tn5offset = c(1, 0)) {
+                                 Tn5offset = c(1, 0),
+                                 barcodesuffix = NULL) {
   fragmentoverlaplist = list()
   tbx = TabixFile(file = file)
   pb = txtProgressBar(max = length(targetregions), style = 3)
@@ -64,6 +66,7 @@ fragmentoverlapcount = function (file,
 
     # Load fragments.
     res = scanTabix(tbx, param = targetregions[i])
+    if (length(res[[1]]) == 0) { next() }
     frags = read.csv(textConnection(res[[1]]),
                      sep = "\t",
                      header = FALSE)
@@ -181,6 +184,9 @@ fragmentoverlapcount = function (file,
     frags = compute_smoothed_distance(frags)
     bptonext_list_data = bptonext_as_list(frags)
     fragsbyBC = left_join(fragsbyBC, bptonext_list_data, by = 'BC')
+    if (! is.null(barcodesuffix)) {
+      fragsbyBC$BC = paste0(fragsbyBC$BC, barcodesuffix[i])
+    }
 
     fragmentoverlaplist = c(fragmentoverlaplist, list(fragsbyBC))
     setTxtProgressBar(pb, i)
