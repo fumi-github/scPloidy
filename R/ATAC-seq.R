@@ -154,14 +154,18 @@ fragmentoverlapcount = function (file,
     # which is the inverse of chromatin accessibility.
     compute_smoothed_distance =
       function(frags) {
-        smoothed_starts = ksmooth(
-          1:nrow(frags),
-          frags$start,
-          bandwidth = 200,
-          n.points = nrow(frags))$y
-        differences = diff(smoothed_starts)
-        differences = c(differences, differences[length(differences)])
-        frags$bptonext = pmax(differences, 0)
+        if (nrow(frags) > 1) {
+          smoothed_starts = ksmooth(
+            1:nrow(frags),
+            frags$start,
+            bandwidth = 200,
+            n.points = nrow(frags))$y
+          differences = diff(smoothed_starts)
+          differences = c(differences, differences[length(differences)])
+          frags$bptonext = pmax(differences, 0)
+        } else {
+          frags$bptonext = Inf
+        }
         return(frags)
       }
 
