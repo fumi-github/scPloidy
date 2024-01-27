@@ -248,15 +248,21 @@ fragmentoverlapcount = function (file,
 # Computes a "capped" version of the log-transformed T2T1 values.
 # The capping is done based on the interquartile range of the log-transformed values.
 .cap = function (logT2T1) {
-  x = 2 * quantile(logT2T1, 0.75) -
-    quantile(logT2T1, 0.5)
-  logT2T1capped = pmin(logT2T1, x)
-  x = 2 * quantile(logT2T1, 0.25) -
-    quantile(logT2T1, 0.5)
-  logT2T1capped = pmax(logT2T1capped, x)
-  # Although unlikely, adjust if -Inf remains.
-  x = min(logT2T1capped[is.finite(logT2T1capped)])
-  logT2T1capped = pmax(logT2T1capped, x)
+  if (is.finite(quantile(logT2T1, 0.25))) {
+    x = 2 * quantile(logT2T1, 0.75) -
+      quantile(logT2T1, 0.5)
+    logT2T1capped = pmin(logT2T1, x)
+    x = 2 * quantile(logT2T1, 0.25) -
+      quantile(logT2T1, 0.5)
+    logT2T1capped = pmax(logT2T1capped, x)
+    # Although unlikely, adjust if -Inf remains.
+    x = min(logT2T1capped[is.finite(logT2T1capped)])
+    logT2T1capped = pmax(logT2T1capped, x)
+  } else {
+    warning("1st Qu. == -Inf")
+    x = min(logT2T1[is.finite(logT2T1)])
+    logT2T1capped = pmax(logT2T1, x)
+  }
   return(logT2T1capped)
 }
 
@@ -540,6 +546,7 @@ ploidy = function (fragmentoverlap,
   }
 
   ### MOMENT BASED METHOD
+  print(lapply(logT2T1bybptonext, summary))
   meanfinite = function (x) { mean(x[is.finite(x)]) }
   x =
     lapply(
