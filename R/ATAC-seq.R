@@ -678,6 +678,7 @@ ploidy = function (fragmentoverlap,
     ploidy.momentfractional = p.momentfractional,
     ploidy.kmeans = p.kmeans,
     ploidy.em = p.em,
+    ploidy.em.1 = inferpem(fragmentoverlapbybptonext[[1]], levels, s, epsilon, subsamplesize), # worse than p.em (only checked s = 1)
     ploidy.moment.1 = p.moment.bybptonext[[1]], # best; better than ploidy.moment
     ploidy.moment.2 = p.moment.bybptonext[[2]],
     ploidy.moment.3 = p.moment.bybptonext[[3]],
