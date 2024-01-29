@@ -443,40 +443,44 @@ ploidy = function (fragmentoverlap,
   # We first try with (depth2, depth3, depth4),
   # but if the clusters don't separate,
   # next try (depth3, depth4, depth5), and so on.
-  for (j in 4:6) {
-    fragmentoverlapsubmatrix =
-      as.matrix(fragmentoverlap[, 0:2 + j])
-    lambda = NULL
-    theta = NULL
-    if (is.numeric(subsamplesize)) {
-      while (subsamplesize < nrow(fragmentoverlapsubmatrix)) {
-        set.seed(s)
-        em.out.small = multmixEM(
-          y = fragmentoverlapsubmatrix[
-            sample(nrow(fragmentoverlapsubmatrix), subsamplesize), ],
-          lambda = lambda,
-          theta = theta,
-          k = length(levels),
-          epsilon = epsilon)
-        lambda = em.out.small$lambda
-        theta = em.out.small$theta
-        subsamplesize = 2 * subsamplesize
+  inferpem = function (fragmentoverlap, levels, s, epsilon, subsamplesize) {
+    for (j in 4:6) {
+      fragmentoverlapsubmatrix =
+        as.matrix(fragmentoverlap[, 0:2 + j])
+      lambda = NULL
+      theta = NULL
+      if (is.numeric(subsamplesize)) {
+        while (subsamplesize < nrow(fragmentoverlapsubmatrix)) {
+          set.seed(s)
+          em.out.small = multmixEM(
+            y = fragmentoverlapsubmatrix[
+              sample(nrow(fragmentoverlapsubmatrix), subsamplesize), ],
+            lambda = lambda,
+            theta = theta,
+            k = length(levels),
+            epsilon = epsilon)
+          lambda = em.out.small$lambda
+          theta = em.out.small$theta
+          subsamplesize = 2 * subsamplesize
+        }
       }
+      set.seed(s)
+      em.out = multmixEM(
+        y = fragmentoverlapsubmatrix,
+        lambda = lambda,
+        theta = theta,
+        k = length(levels),
+        epsilon = epsilon)
+      if (max(em.out$lambda) < 0.99) { break }
     }
-    set.seed(s)
-    em.out = multmixEM(
-      y = fragmentoverlapsubmatrix,
-      lambda = lambda,
-      theta = theta,
-      k = length(levels),
-      epsilon = epsilon)
-    if (max(em.out$lambda) < 0.99) { break }
+    p.em = apply(em.out$posterior, 1, which.max)
+    # EM is simple clustering and unaware of the labeling in levels.
+    # We infer the labeling from the last element of theta,
+    # which represents the overlaps of largest depth used for clustering.
+    p.em = ( sort(levels)[ rank(em.out$theta[, 3]) ] )[p.em]
+    return(p.em)
   }
-  p.em = apply(em.out$posterior, 1, which.max)
-  # EM is simple clustering and unaware of the labeling in levels.
-  # We infer the labeling from the last element of theta,
-  # which represents the overlaps of largest depth used for clustering.
-  p.em = ( sort(levels)[ rank(em.out$theta[, 3]) ] )[p.em]
+  p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
 
   ### K-MEANS POST-PROCESSING OF MOMENT
   x = log10(
