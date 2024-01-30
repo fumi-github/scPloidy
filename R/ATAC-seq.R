@@ -668,8 +668,12 @@ ploidy = function (fragmentoverlap,
 
   }
 
-  ploidy.bayes.1 = ploidy_bayes(fragmentoverlapbybptonext[[1]], levels, prop, p.moment.bybptonext[[1]])
-  ploidy.bayes.2 = ploidy_bayes(fragmentoverlapbybptonext[[2]], levels, prop, p.moment.bybptonext[[1]])
+  x = fragmentoverlapbybptonext[[1]]
+  for (j in setdiff(1:6, 1:ncol(x))) { x = cbind(x, 0) } # pad if max depth < 6
+  ploidy.bayes.1 = ploidy_bayes(x, levels, prop, p.moment.bybptonext[[1]])
+  x = fragmentoverlapbybptonext[[2]]
+  for (j in setdiff(1:6, 1:ncol(x))) { x = cbind(x, 0) } # pad if max depth < 6
+  ploidy.bayes.2 = ploidy_bayes(x, levels, prop, p.moment.bybptonext[[1]])
   # ploidy.bayes.12 = ploidy_bayes(cbind(fragmentoverlapbybptonext[[1]], fragmentoverlapbybptonext[[2]]), levels)
 
   return(data.frame(
