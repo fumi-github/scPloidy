@@ -444,7 +444,8 @@ ploidy = function (fragmentoverlap,
   # but if the clusters don't separate,
   # next try (depth3, depth4, depth5), and so on.
   inferpem = function (fragmentoverlap, levels, s, epsilon, subsamplesize) {
-    for (j in 4:6) {
+    if (ncol(fragmentoverlap) < 6) { return(NA) }
+    for (j in 4:(ncol(fragmentoverlap) - 2)) {
       fragmentoverlapsubmatrix =
         as.matrix(fragmentoverlap[, 0:2 + j])
       lambda = NULL
