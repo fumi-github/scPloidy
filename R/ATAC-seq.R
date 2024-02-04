@@ -573,10 +573,10 @@ ploidy = function (fragmentoverlap,
   ### BAYESIAN
   x = fragmentoverlapbybptonext[[1]]
   for (j in setdiff(1:6, 1:ncol(x))) { x = cbind(x, 0) } # pad if max depth < 6
-  ploidy.bayes.1 = ploidy_bayes(x, levels, prop, p.moment.bybptonext[[1]])
+  ploidy.bayes.1 = ploidy_bayes(x, levels, prop, p.moment.bybptonext[[1]])$ploidy.bayes
   x = fragmentoverlapbybptonext[[2]]
   for (j in setdiff(1:6, 1:ncol(x))) { x = cbind(x, 0) } # pad if max depth < 6
-  ploidy.bayes.2 = ploidy_bayes(x, levels, prop, p.moment.bybptonext[[1]])
+  ploidy.bayes.2 = ploidy_bayes(x, levels, prop, p.moment.bybptonext[[1]])$ploidy.bayes
   # ploidy.bayes.12 = ploidy_bayes(cbind(fragmentoverlapbybptonext[[1]], fragmentoverlapbybptonext[[2]]), levels)
 
   return(data.frame(
@@ -676,8 +676,8 @@ ploidy_bayes = function (data, levels, prop, inits) {
     nchains = 4, niter = 30000, nburnin = 20000,
     setSeed = TRUE,
     summary = TRUE, WAIC = TRUE,
-    monitors = 'ind')
-  # monitors = c('alpha1', 'ind'))
+    # monitors = 'ind')
+    monitors = c('alpha1', 'ind'))
   # monitors = c('alpha1', 'alpha2', 'ind'))
   # monitors = c('prop', 'ind'))
 
@@ -698,8 +698,11 @@ ploidy_bayes = function (data, levels, prop, inits) {
   # plogis(mcmc.out$summary$all.chains["alpha1", "Mean"])
 
   # print(paste("prop: ", (mcmc.out$summary$all.chains)["prop", "Median"]))
+  alpha1 = (mcmc.out$summary$all.chains)["alpha1", "Median"]
   x = grep("^ind", rownames(mcmc.out$summary$all.chains))
   ploidy.bayes = levels[round((mcmc.out$summary$all.chains)[x, "Median"])]
-  return(ploidy.bayes)
+  return(list(
+    ploidy.bayes = ploidy.bayes,
+    alpha1 = alpha1))
 
 }
