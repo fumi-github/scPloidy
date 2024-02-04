@@ -302,7 +302,8 @@ ploidy = function (fragmentoverlap,
                    s = 100,
                    epsilon = 1e-08,
                    subsamplesize = NULL,
-                   prop = 0.9) {
+                   prop = 0.9,
+                   dobayes = FALSE) {
   if (min(levels) <= 1) {
     stop('Error: elements of levels must be larger than one')
   }
@@ -497,14 +498,29 @@ ploidy = function (fragmentoverlap,
           function (x) {rowMeans(do.call(cbind, x))})))
   p.kmeans = levels[kmclust$cluster]
 
+
   if (ncol(fragmentoverlap) <= 8) {
 
-    return(data.frame(
-      barcode = fragmentoverlap$barcode,
-      ploidy.moment = p.moment,
-      ploidy.momentfractional = p.momentfractional,
-      ploidy.kmeans = p.kmeans,
-      ploidy.em = p.em))
+    if (dobayes) {
+      ### BAYESIAN
+      ploidy.bayes = ploidy_bayes(as.matrix(fragmentoverlap[, 3:8]), levels, prop, p.moment)
+      return(data.frame(
+        barcode = fragmentoverlap$barcode,
+        ploidy.moment = p.moment,
+        s = 1 / exp(offset),
+        ploidy.momentfractional = p.momentfractional,
+        ploidy.kmeans = p.kmeans,
+        ploidy.em = p.em,
+        ploidy.bayes = ploidy.bayes$ploidy.bayes,
+        ploidy.alpha1 = ploidy.bayes$alpha1))
+    } else {
+      return(data.frame(
+        barcode = fragmentoverlap$barcode,
+        ploidy.moment = p.moment,
+        ploidy.momentfractional = p.momentfractional,
+        ploidy.kmeans = p.kmeans,
+        ploidy.em = p.em))
+    }
 
   } else {
 

@@ -10,7 +10,8 @@ ploidy(
   s = 100,
   epsilon = 1e-08,
   subsamplesize = NULL,
-  prop = 0.9
+  prop = 0.9,
+  dobayes = FALSE
 )
 }
 \arguments{
