@@ -598,48 +598,14 @@ ploidy = function (fragmentoverlap,
 
       return(data.frame(
         barcode = fragmentoverlap$barcode,
-        ploidy.moment = p.moment,
-        ploidy.momentfractional = p.momentfractional,
-        ploidy.kmeans = p.kmeans,
-        ploidy.em = p.em,
         ploidy.em.1 = inferpem(fragmentoverlapbybptonext[[1]], levels, s, epsilon, subsamplesize), # worse than p.em (only checked s = 1)
         ploidy.moment.1 = p.moment.bybptonext[[1]], # best; better than ploidy.moment
-        ploidy.moment.2 = p.moment.bybptonext[[2]],
-        ploidy.moment.3 = p.moment.bybptonext[[3]],
-        ploidy.moment.4 = p.moment.bybptonext[[4]],
-        ploidy.moment.5 = p.moment.bybptonext[[5]],
-        ploidy.moment.6 = p.moment.bybptonext[[6]],
-        ploidy.moment.7 = p.moment.bybptonext[[7]],
-        ploidy.moment.8 = p.moment.bybptonext[[8]],
-        ploidy.moment.9 = p.moment.bybptonext[[9]],
-        ploidy.moment.10 = p.moment.bybptonext[[10]],
-        ploidy.moment.12 = p.moment.bybptonext[[11]], # not better than ploidy.moment.1
-        ploidy.moment.23 = p.moment.bybptonext[[12]], # not better than ploidy.moment.1
-        ploidy.moment.123 = p.moment.bybptonext[[13]], # not better than ploidy.moment.1
-        ploidy.bayes.1 = ploidy.bayes.1,
-        ploidy.bayes.2 = ploidy.bayes.2))
-      # ploidy.bayes.12 = ploidy.bayes.12))
+        ploidy.bayes.1 = ploidy.bayes.1))
     } else {
       return(data.frame(
         barcode = fragmentoverlap$barcode,
-        ploidy.moment = p.moment,
-        ploidy.momentfractional = p.momentfractional,
-        ploidy.kmeans = p.kmeans,
-        ploidy.em = p.em,
         ploidy.em.1 = inferpem(fragmentoverlapbybptonext[[1]], levels, s, epsilon, subsamplesize), # worse than p.em (only checked s = 1)
-        ploidy.moment.1 = p.moment.bybptonext[[1]], # best; better than ploidy.moment
-        ploidy.moment.2 = p.moment.bybptonext[[2]],
-        ploidy.moment.3 = p.moment.bybptonext[[3]],
-        ploidy.moment.4 = p.moment.bybptonext[[4]],
-        ploidy.moment.5 = p.moment.bybptonext[[5]],
-        ploidy.moment.6 = p.moment.bybptonext[[6]],
-        ploidy.moment.7 = p.moment.bybptonext[[7]],
-        ploidy.moment.8 = p.moment.bybptonext[[8]],
-        ploidy.moment.9 = p.moment.bybptonext[[9]],
-        ploidy.moment.10 = p.moment.bybptonext[[10]],
-        ploidy.moment.12 = p.moment.bybptonext[[11]], # not better than ploidy.moment.1
-        ploidy.moment.23 = p.moment.bybptonext[[12]], # not better than ploidy.moment.1
-        ploidy.moment.123 = p.moment.bybptonext[[13]])) # not better than ploidy.moment.1
+        ploidy.moment.1 = p.moment.bybptonext[[1]])) # best; better than ploidy.moment
     }
   }
 }
