@@ -425,19 +425,6 @@ ploidy = function (fragmentoverlap,
       offset = offsetoptimize$minimum))
   }
 
-  x = as.matrix(fragmentoverlap[, 3:8])
-  T1 = as.numeric(x %*% seq(1, ncol(x)))
-  T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
-  logT2T1 = log(T2 / T1 - 1)
-  logT2T1capped = .cap(logT2T1)
-  x = inferpmoment(logT2T1capped, levels)
-  p.moment = x$p.moment
-  offset = x$offset
-
-  # exp(offset) is the estimate for 1/s
-  p.momentfractional =
-    exp(logT2T1) * exp(offset) + 1
-
   ### EM ALGORITHM FOR MIXTURES
   # We superficially (and possibly robustly) model
   # as mixtures of multinomial distributions
@@ -482,7 +469,6 @@ ploidy = function (fragmentoverlap,
     p.em = ( sort(levels)[ rank(em.out$theta[, 3]) ] )[p.em]
     return(p.em)
   }
-  p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
 
   ### K-MEANS POST-PROCESSING OF MOMENT
   inferpkmeans = function (fragmentoverlap, levels, p.moment) {
@@ -499,7 +485,19 @@ ploidy = function (fragmentoverlap,
             function (x) {rowMeans(do.call(cbind, x))})))
     p.kmeans = levels[kmclust$cluster]
   }
+
+  x = as.matrix(fragmentoverlap[, 3:8])
+  T1 = as.numeric(x %*% seq(1, ncol(x)))
+  T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
+  logT2T1 = log(T2 / T1 - 1)
+  logT2T1capped = .cap(logT2T1)
+  x = inferpmoment(logT2T1capped, levels)
+  p.moment = x$p.moment
+  offset = x$offset
+  # exp(offset) is the estimate for 1/s
+  p.momentfractional = exp(logT2T1) * exp(offset) + 1
   p.kmeans = inferpkmeans (fragmentoverlap, levels, p.moment)
+  p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
 
   if (ncol(fragmentoverlap) <= 8) {
 
