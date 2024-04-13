@@ -556,6 +556,7 @@ ploidy = function (fragmentoverlap,
 
     ### MOMENT BASED METHOD
     p.moment = inferpmoment(.cap(logT2T1bybptonext[[1]]), levels)$p.moment
+    p.em = inferpem(fragmentoverlapbybptonext[[1]], levels, s, epsilon, subsamplesize) # worse than p.em (only checked s = 1)
 
     if (dobayes) {
       ### BAYESIAN
@@ -569,13 +570,13 @@ ploidy = function (fragmentoverlap,
 
       return(data.frame(
         barcode = fragmentoverlap$barcode,
-        ploidy.em.1 = inferpem(fragmentoverlapbybptonext[[1]], levels, s, epsilon, subsamplesize), # worse than p.em (only checked s = 1)
+        ploidy.em.1 = p.em,
         ploidy.moment.1 = p.moment, # best; better than ploidy.moment
         ploidy.bayes.1 = ploidy.bayes.1))
     } else {
       return(data.frame(
         barcode = fragmentoverlap$barcode,
-        ploidy.em.1 = inferpem(fragmentoverlapbybptonext[[1]], levels, s, epsilon, subsamplesize), # worse than p.em (only checked s = 1)
+        ploidy.em.1 = p.em,
         ploidy.moment.1 = p.moment)) # best; better than ploidy.moment
     }
   }
