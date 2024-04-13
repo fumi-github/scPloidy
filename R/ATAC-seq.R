@@ -554,18 +554,6 @@ ploidy = function (fragmentoverlap,
       }
     )
 
-    # Measure difference between logT2T1bybptonext[[1]] and logT2T1bybptonext[[i]]
-    centralizedL1 =
-      function (x, y) {
-        f = is.finite(x) & is.finite(y)
-        x = x[f]
-        y = y[f]
-        return(mean(abs((x - mean(x)) - (y - mean(y)))))
-      }
-    for (i in 2:length(logT2T1bybptonext)) {
-      print(centralizedL1(logT2T1bybptonext[[1]], logT2T1bybptonext[[i]]))
-    }
-
     ### MOMENT BASED METHOD
     p.moment = inferpmoment(.cap(logT2T1bybptonext[[1]]), levels)$p.moment
 
