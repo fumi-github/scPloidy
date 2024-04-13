@@ -485,19 +485,21 @@ ploidy = function (fragmentoverlap,
   p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
 
   ### K-MEANS POST-PROCESSING OF MOMENT
-  x = log10(
-    (fragmentoverlap[, 4:6] + 1) / fragmentoverlap$nfrags)
-  kmclust =
-    kmeans(
-      x,
-      do.call(
-        rbind,
-        tapply(
-          as.list(as.data.frame(t(x))),
-          p.moment,
-          function (x) {rowMeans(do.call(cbind, x))})))
-  p.kmeans = levels[kmclust$cluster]
-
+  inferpkmeans = function (fragmentoverlap, levels, p.moment) {
+    x = log10(
+      (fragmentoverlap[, 4:6] + 1) / fragmentoverlap$nfrags)
+    kmclust =
+      kmeans(
+        x,
+        do.call(
+          rbind,
+          tapply(
+            as.list(as.data.frame(t(x))),
+            p.moment,
+            function (x) {rowMeans(do.call(cbind, x))})))
+    p.kmeans = levels[kmclust$cluster]
+  }
+  p.kmeans = inferpkmeans (fragmentoverlap, levels, p.moment)
 
   if (ncol(fragmentoverlap) <= 8) {
 
