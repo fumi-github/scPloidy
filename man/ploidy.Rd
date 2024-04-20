@@ -10,8 +10,8 @@ ploidy(
   s = 100,
   epsilon = 1e-08,
   subsamplesize = NULL,
-  prop = 0.9,
-  dobayes = FALSE
+  dobayes = FALSE,
+  prop = 0.9
 )
 }
 \arguments{
@@ -34,6 +34,9 @@ first for \code{subsamplesize} randomly sampled cells,
 next for twice the number of cells in repetition.
 The inferred lambda/theta parameters are used as the initial value
 in the next repetition.}
+
+\item{dobayes}{Whether to perform Bayes inference, which takes
+long computation time.}
 
 \item{prop}{Proportion of peaks that can be fitted with binomal
 distribution in ploidy.bayes. The rest of peaks are allowed to
