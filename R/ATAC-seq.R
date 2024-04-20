@@ -597,7 +597,7 @@ ploidy = function (fragmentoverlap,
   offset = x$offset
   # exp(offset) is the estimate for 1/s
   p.momentfractional = exp(logT2T1) * exp(offset) + 1
-  p.kmeans = inferpkmeans (fragmentoverlap, levels, p.moment)
+  p.kmeans = inferpkmeans(fragmentoverlap, levels, p.moment)
   p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
 
   if (ncol(fragmentoverlap) <= 8) {
