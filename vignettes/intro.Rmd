@@ -12,6 +12,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+has_pkg = requireNamespace("IRanges", quietly = TRUE) &&
+  requireNamespace("readr", quietly = TRUE)
+knitr::opts_chunk$set(eval = has_pkg)
 ```
 
 ## Introduction
