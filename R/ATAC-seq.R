@@ -656,25 +656,39 @@ ploidy = function (fragmentoverlap,
     )
 
     ### MOMENT BASED METHOD
-    p.moment = inferpmoment(.cap(logT2T1bybptonext[[1]]), levels)$p.moment
-    p.em = inferpem(fragmentoverlapbybptonext[[1]], levels, s, epsilon, subsamplesize) # worse than p.em (only checked s = 1)
-
+    x = inferpmoment(.cap(logT2T1bybptonext[[1]]), levels)
+    p.moment = x$p.moment
+    offset = x$offset
+    p.momentfractional = exp(logT2T1bybptonext[[1]]) * exp(offset) + 1
+    fragmentoverlap1 = cbind(
+      data.frame(
+        barcode = fragmentoverlap$barcode,
+        nfrags = rowSums(fragmentoverlapbybptonext[[1]])),
+      fragmentoverlapbybptonext[[1]])
+    p.kmeans = inferpkmeans(fragmentoverlap1, levels, p.moment)
+    p.em = inferpem(fragmentoverlap1, levels, s, epsilon, subsamplesize)
     if (dobayes) {
       ### BAYESIAN
       x = fragmentoverlapbybptonext[[1]]
       for (j in setdiff(1:6, 1:ncol(x))) { x = cbind(x, 0) } # pad if max depth < 6
-      ploidy.bayes.1 = ploidy_bayes(x, levels, prop, p.moment)$ploidy.bayes
+      ploidy.bayes = ploidy_bayes(x, levels, prop, p.moment)
 
       return(data.frame(
         barcode = fragmentoverlap$barcode,
-        ploidy.em.1 = p.em,
-        ploidy.moment.1 = p.moment, # best; better than ploidy.moment
-        ploidy.bayes.1 = ploidy.bayes.1))
+        ploidy.moment = p.moment,
+        s = 1 / exp(offset),
+        ploidy.momentfractional = p.momentfractional,
+        ploidy.kmeans = p.kmeans,
+        ploidy.em = p.em,
+        ploidy.bayes = ploidy.bayes$ploidy.bayes,
+        ploidy.alpha1 = ploidy.bayes$alpha1))
     } else {
       return(data.frame(
         barcode = fragmentoverlap$barcode,
-        ploidy.em.1 = p.em,
-        ploidy.moment.1 = p.moment)) # best; better than ploidy.moment
+        ploidy.moment = p.moment,
+        ploidy.momentfractional = p.momentfractional,
+        ploidy.kmeans = p.kmeans,
+        ploidy.em = p.em))
     }
   }
 }
