@@ -614,8 +614,7 @@ ploidy = function (fragmentoverlap,
         ploidy.momentfractional = p.momentfractional,
         ploidy.kmeans = p.kmeans,
         ploidy.em = p.em,
-        ploidy.bayes = ploidy.bayes$ploidy.bayes,
-        ploidy.alpha1 = ploidy.bayes$alpha1))
+        ploidy.bayes = ploidy.bayes$ploidy.bayes))
     } else {
       return(data.frame(
         barcode = fragmentoverlap$barcode,
@@ -682,8 +681,7 @@ ploidy = function (fragmentoverlap,
         ploidy.momentfractional = p.momentfractional,
         ploidy.kmeans = p.kmeans,
         ploidy.em = p.em,
-        ploidy.bayes = ploidy.bayes$ploidy.bayes,
-        ploidy.alpha1 = ploidy.bayes$alpha1))
+        ploidy.bayes = ploidy.bayes$ploidy.bayes))
     } else {
       return(data.frame(
         barcode = fragmentoverlap$barcode,
