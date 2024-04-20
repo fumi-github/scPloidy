@@ -283,6 +283,8 @@ fragmentoverlapcount = function (file,
 #' next for twice the number of cells in repetition.
 #' The inferred lambda/theta parameters are used as the initial value
 #' in the next repetition.
+#' @param dobayes Whether to perform Bayes inference, which takes
+#' long computation time.
 #' @param prop Proportion of peaks that can be fitted with binomal
 #' distribution in ploidy.bayes. The rest of peaks are allowed to
 #' have depth larger than the ploidy.
@@ -302,8 +304,8 @@ ploidy = function (fragmentoverlap,
                    s = 100,
                    epsilon = 1e-08,
                    subsamplesize = NULL,
-                   prop = 0.9,
-                   dobayes = FALSE) {
+                   dobayes = FALSE,
+                   prop = 0.9) {
   if (min(levels) <= 1) {
     stop('Error: elements of levels must be larger than one')
   }
