@@ -567,20 +567,19 @@ ploidy = function (fragmentoverlap,
 
   }
 
-  x = as.matrix(fragmentoverlap[, 3:8])
-  T1 = as.numeric(x %*% seq(1, ncol(x)))
-  T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
-  logT2T1 = log(T2 / T1 - 1)
-  logT2T1capped = .cap(logT2T1)
-  x = inferpmoment(logT2T1capped, levels)
-  p.moment = x$p.moment
-  offset = x$offset
-  # exp(offset) is the estimate for 1/s
-  p.momentfractional = exp(logT2T1) * exp(offset) + 1
-  p.kmeans = inferpkmeans(fragmentoverlap, levels, p.moment)
-  p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
-
   if (ncol(fragmentoverlap) <= 8) {
+    x = as.matrix(fragmentoverlap[, 3:8])
+    T1 = as.numeric(x %*% seq(1, ncol(x)))
+    T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
+    logT2T1 = log(T2 / T1 - 1)
+    logT2T1capped = .cap(logT2T1)
+    x = inferpmoment(logT2T1capped, levels)
+    p.moment = x$p.moment
+    offset = x$offset
+    # exp(offset) is the estimate for 1/s
+    p.momentfractional = exp(logT2T1) * exp(offset) + 1
+    p.kmeans = inferpkmeans(fragmentoverlap, levels, p.moment)
+    p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
     if (dobayes) {
       ploidy.bayes = ploidy_bayes(as.matrix(fragmentoverlap[, 3:8]), levels, prop, p.moment)
     }
