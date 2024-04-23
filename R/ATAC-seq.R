@@ -494,38 +494,27 @@ ploidy = function (fragmentoverlap,
 
     Code = nimbleCode({
       alpha1 ~ dbeta(shape1 = 0.5, shape2 = 0.5)
-      # alpha2 ~ dbeta(shape1 = 0.5, shape2 = 0.5)
-      # prop ~ dunif(0.1, 0.9)
       for (i in 1:Ncell) {
         ind[i] ~ dcat(ploidyprior[])
         ploidy[i] <- ploidylevels[ind[i]]
-        # ploidy[i] ~ T(dpois(2), 2, )
         for (j in 1:6) {
           probbinom1raw[i, j] <- dbinom(x = j, prob = alpha1, size = ploidy[i], log = 0)
-          # probbinom2raw[i, j] <- dbinom(x = j, prob = alpha1, size = ploidy[i], log = 0)
         }
 
         # avoid if
         probpois1raw[i, 1]  <- dpois(x = 1, lambda = averagedepth1[i], log = 0) + equals(averagedepth1[i], 0)
-        # probpois1raw[i, 1]  <- dpois(x = 1, lambda = alpha1 * ploidy[i], log = 0)
         for (j in 2:6) {
           probpois1raw[i, j]  <- dpois(x = j, lambda = averagedepth1[i], log = 0)
-          # probpois1raw[i, j]  <- dpois(x = j, lambda = alpha1 * ploidy[i], log = 0)
         }
 
         probbinom1sum[i] <- sum(probbinom1raw[i, 1:6])
         probpois1sum[i]  <- sum(probpois1raw[i, 1:6])
-        # probbinom2sum[i] <- sum(probbinom2raw[i, 1:6])
-        # probpois2sum[i]  <- sum(probpois2raw[i, 1:6])
         for (j in 1:6) {
           prob1[i, j] <-
             prop * (probbinom1raw[i, j] / probbinom1sum[i]) +
             (1 - prop) * (probpois1raw[i, j] / probpois1sum[i])
-          # prob2[i, j] <- prop * (probbinom2raw[i, j] / probbinom2sum[i]) +
-          #   (1 - prop) * (probpois2raw[i, j] / probpois2sum[i])
         }
         y[i, 1:6] ~ dmulti(prob = prob1[i, 1:6], size = Nfrag1[i])
-        # y[i, 7:12] ~ dmulti(prob = prob2[i, 1:6], size = Nfrag2[i])
       }
     })
 
@@ -533,23 +522,16 @@ ploidy = function (fragmentoverlap,
     T1_1 = as.numeric(data[, 1:6] %*% seq(1, 6))
     T2_1 = as.numeric(data[, 1:6] %*% (seq(1, 6)^2))
     T2T1_1 = T2_1 / T1_1 - 1
-    # T1_2 = as.numeric(data[, 7:12] %*% seq(1, 6))
-    # T2_2 = as.numeric(data[, 7:12] %*% (seq(1, 6)^2))
-    # T2T1_2 = T2_2 / T1_2 - 1
     Consts = list(
       prop = prop,
       ploidyprior = rep(1/length(levels), length(levels)),
       Ncell = Ncell,
       Nfrag1 = rowSums(data[, 1:6]),
-      # Nfrag2 = rowSums(data[, 7:12]),
-      averagedepth1 = T2T1_1) # bayes_averagedepthnotcapped_alphaonly; better
-    # averagedepth2 = T2T1_2)
-    # averagedepth1 = exp(.cap(log(T2T1_1)))) # bayes_averagedepthcap_alphaonly; worse
+      averagedepth1 = T2T1_1)
     Data = list(
       ploidylevels = levels,
       y = data)
     Inits = list(
-      # ind = sample(length(levels), Ncell, replace = TRUE))
       ind = match(inits, levels))
     mcmc.out = nimbleMCMC(
       code = Code,
@@ -559,13 +541,9 @@ ploidy = function (fragmentoverlap,
       nchains = 4, niter = 30000, nburnin = 20000,
       setSeed = TRUE,
       summary = TRUE, WAIC = TRUE,
-      # monitors = 'ind')
       monitors = c('alpha1', 'ind'))
-    # monitors = c('alpha1', 'alpha2', 'ind'))
-    # monitors = c('prop', 'ind'))
 
     # v = "alpha1"
-    # v = "beta"
     # ggplot(data = data.frame(
     #   x = 1:nrow(mcmc.out$samples$chain1),
     #   y1 = mcmc.out$samples$chain1[, v],
@@ -580,7 +558,6 @@ ploidy = function (fragmentoverlap,
     # mcmc.out$summary$all.chains
     # plogis(mcmc.out$summary$all.chains["alpha1", "Mean"])
 
-    # print(paste("prop: ", (mcmc.out$summary$all.chains)["prop", "Median"]))
     alpha1 = (mcmc.out$summary$all.chains)["alpha1", "Median"]
     x = grep("^ind", rownames(mcmc.out$summary$all.chains))
     ploidy.bayes = levels[round((mcmc.out$summary$all.chains)[x, "Median"])]
