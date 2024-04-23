@@ -608,21 +608,6 @@ ploidy = function (fragmentoverlap,
       ploidy.bayes = ploidy_bayes(as.matrix(fragmentoverlap[, 3:8]), levels, prop, p.moment)
     }
   } else {
-    # library(tidyverse)
-    # plotdata = as.data.frame(fragmentoverlapbybptonext[[1]]) # signal in 1:3, maybe 4:5
-    # plotdata$barcode = rownames(plotdata)
-    # plotdata$answer = as.numeric(sub(".*_", "", sub("x_.*", "", plotdata$barcode)))
-    # plotdata = pivot_longer(
-    #   plotdata,
-    #   cols = c(depth1, depth2, depth3, depth4, depth5, depth6))
-    # plotdata$x = as.numeric(sub("depth", "", plotdata$name))
-    # ggplot(data = plotdata,
-    #        aes(x = x, y = value)) +
-    #   geom_line(aes(col = barcode), linewidth = 0.05) +
-    #   facet_grid(rows = vars(answer)) +
-    #   guides(color = "none") +
-    #   ylab("fx")
-
     # grouping in list: bptonextclass
     # name: barcode
     # value: logT2T1
