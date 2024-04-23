@@ -395,7 +395,6 @@ ploidy = function (fragmentoverlap,
   # Since we cannot properly count observations with zero success,
   # we model as truncated binomial distribution.
   # We use the moment method in Paul R. Rider (1955).
-
   inferpmoment = function (logT2T1capped, levels) {
     m = matrix(
       logT2T1capped,
