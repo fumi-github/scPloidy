@@ -488,6 +488,7 @@ ploidy = function (fragmentoverlap,
     p.kmeans = levels[kmclust$cluster]
   }
 
+  ### BAYESIAN
   # TODO cells with no observation (rowSums(data) == 0) might cause error.
   ploidy_bayes = function (data, levels, prop, inits) {
 
@@ -603,29 +604,10 @@ ploidy = function (fragmentoverlap,
   p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
 
   if (ncol(fragmentoverlap) <= 8) {
-
     if (dobayes) {
-      ### BAYESIAN
       ploidy.bayes = ploidy_bayes(as.matrix(fragmentoverlap[, 3:8]), levels, prop, p.moment)
-      return(data.frame(
-        barcode = fragmentoverlap$barcode,
-        ploidy.moment = p.moment,
-        s = 1 / exp(offset),
-        ploidy.momentfractional = p.momentfractional,
-        ploidy.kmeans = p.kmeans,
-        ploidy.em = p.em,
-        ploidy.bayes = ploidy.bayes$ploidy.bayes))
-    } else {
-      return(data.frame(
-        barcode = fragmentoverlap$barcode,
-        ploidy.moment = p.moment,
-        ploidy.momentfractional = p.momentfractional,
-        ploidy.kmeans = p.kmeans,
-        ploidy.em = p.em))
     }
-
   } else {
-
     # library(tidyverse)
     # plotdata = as.data.frame(fragmentoverlapbybptonext[[1]]) # signal in 1:3, maybe 4:5
     # plotdata$barcode = rownames(plotdata)
@@ -656,7 +638,6 @@ ploidy = function (fragmentoverlap,
       }
     )
 
-    ### MOMENT BASED METHOD
     x = inferpmoment(.cap(logT2T1bybptonext[[1]]), levels)
     p.moment = x$p.moment
     offset = x$offset
@@ -669,26 +650,20 @@ ploidy = function (fragmentoverlap,
     p.kmeans = inferpkmeans(fragmentoverlap1, levels, p.moment)
     p.em = inferpem(fragmentoverlap1, levels, s, epsilon, subsamplesize)
     if (dobayes) {
-      ### BAYESIAN
       x = fragmentoverlapbybptonext[[1]]
       for (j in setdiff(1:6, 1:ncol(x))) { x = cbind(x, 0) } # pad if max depth < 6
       ploidy.bayes = ploidy_bayes(x, levels, prop, p.moment)
-
-      return(data.frame(
-        barcode = fragmentoverlap$barcode,
-        ploidy.moment = p.moment,
-        s = 1 / exp(offset),
-        ploidy.momentfractional = p.momentfractional,
-        ploidy.kmeans = p.kmeans,
-        ploidy.em = p.em,
-        ploidy.bayes = ploidy.bayes$ploidy.bayes))
-    } else {
-      return(data.frame(
-        barcode = fragmentoverlap$barcode,
-        ploidy.moment = p.moment,
-        ploidy.momentfractional = p.momentfractional,
-        ploidy.kmeans = p.kmeans,
-        ploidy.em = p.em))
     }
   }
+
+  output = data.frame(
+    barcode = fragmentoverlap$barcode,
+    ploidy.moment = p.moment,
+    ploidy.momentfractional = p.momentfractional,
+    ploidy.kmeans = p.kmeans,
+    ploidy.em = p.em)
+  if (dobayes) {
+    output$ploidy.bayes = ploidy.bayes$ploidy.bayes
+  }
+  return(output)
 }
