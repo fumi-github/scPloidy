@@ -489,7 +489,7 @@ ploidy = function (fragmentoverlap,
 
   ### BAYESIAN
   # TODO cells with no observation (rowSums(data) == 0) might cause error.
-  ploidy_bayes = function (data, levels, prop, inits) {
+  inferpbayes = function (data, levels, prop, inits) {
 
     Code = nimbleCode({
       alpha1 ~ dbeta(shape1 = 0.5, shape2 = 0.5)
@@ -580,7 +580,7 @@ ploidy = function (fragmentoverlap,
     p.kmeans = inferpkmeans(fragmentoverlap, levels, p.moment)
     p.em = inferpem(fragmentoverlap, levels, s, epsilon, subsamplesize)
     if (dobayes) {
-      ploidy.bayes = ploidy_bayes(as.matrix(fragmentoverlap[, 3:8]), levels, prop, p.moment)
+      ploidy.bayes = inferpbayes(as.matrix(fragmentoverlap[, 3:8]), levels, prop, p.moment)
     }
   } else {
     # grouping in list: bptonextclass
@@ -612,7 +612,7 @@ ploidy = function (fragmentoverlap,
     if (dobayes) {
       x = fragmentoverlapbybptonext[[1]]
       for (j in setdiff(1:6, 1:ncol(x))) { x = cbind(x, 0) } # pad if max depth < 6
-      ploidy.bayes = ploidy_bayes(x, levels, prop, p.moment)
+      ploidy.bayes = inferpbayes(x, levels, prop, p.moment)
     }
   }
 
