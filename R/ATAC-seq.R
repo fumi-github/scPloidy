@@ -571,8 +571,7 @@ ploidy = function (fragmentoverlap,
     T1 = as.numeric(x %*% seq(1, ncol(x)))
     T2 = as.numeric(x %*% (seq(1, ncol(x))^2))
     logT2T1 = log(T2 / T1 - 1)
-    logT2T1capped = .cap(logT2T1)
-    x = inferpmoment(logT2T1capped, levels)
+    x = inferpmoment(.cap(logT2T1), levels)
     p.moment = x$p.moment
     offset = x$offset
     # exp(offset) is the estimate for 1/s
