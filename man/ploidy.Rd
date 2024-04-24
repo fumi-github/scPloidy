@@ -35,8 +35,8 @@ next for twice the number of cells in repetition.
 The inferred lambda/theta parameters are used as the initial value
 in the next repetition.}
 
-\item{dobayes}{Whether to perform Bayes inference, which takes
-long computation time.}
+\item{dobayes}{(experimental feature) Whether to perform Bayesian inference,
+which takes long computation time.}
 
 \item{prop}{Proportion of peaks that can be fitted with binomal
 distribution in ploidy.bayes. The rest of peaks are allowed to
@@ -44,10 +44,11 @@ have depth larger than the ploidy.}
 }
 \value{
 A data.frame with each row corresponding to a cell.
-For each cell, its barcode, ploidy inferred by moment method,
-the same with additional K-means clustering,
-and ploidy inferred by EM algorithm of mixture are given.
-I recommend using \code{ploidy.moment}.
+For each cell, its barcode, ploidy inferred by 1) moment method,
+2) the same with additional K-means clustering,
+3) EM algorithm of mixture, and, optionally,
+4) Bayesian inference are given.
+I recommend using \code{ploidy.moment} or \code{ploidy.em}.
 }
 \description{
 Infer Ploidy from ATAC-seq Fragment Overlap
