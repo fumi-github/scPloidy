@@ -10,7 +10,8 @@ fragmentoverlapcount(
   excluderegions = NULL,
   targetbarcodes = NULL,
   Tn5offset = c(1, 0),
-  barcodesuffix = NULL
+  barcodesuffix = NULL,
+  dobptonext = FALSE
 )
 }
 \arguments{
@@ -55,6 +56,10 @@ If unsure, set to \code{"guess"},
 in which case the program returns a guess.}
 
 \item{barcodesuffix}{Add suffix to barcodes per targetregions.}
+
+\item{dobptonext}{(experimental feature) Whether to compute smoothed distance
+to the next fragment (irrelevant to BC) as bptonext,
+which is the inverse of chromatin accessibility, and append as 9th to 14th columns.}
 }
 \value{
 A tibble with each row corresponding to a cell.

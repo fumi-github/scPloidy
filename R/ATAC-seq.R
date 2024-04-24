@@ -41,6 +41,9 @@ if (getRversion() >= "2.15.1") {
 #' If unsure, set to \code{"guess"},
 #' in which case the program returns a guess.
 #' @param barcodesuffix Add suffix to barcodes per targetregions.
+#' @param dobptonext (experimental feature) Whether to compute smoothed distance
+#' to the next fragment (irrelevant to BC) as bptonext,
+#' which is the inverse of chromatin accessibility, and append as 9th to 14th columns.
 #' @return A tibble with each row corresponding to a cell.
 #' For each cell, its barcode, the total count of the fragments \code{nfrag},
 #' and the count distinguished by overlap depth are given.
@@ -58,7 +61,8 @@ fragmentoverlapcount = function (file,
                                  excluderegions = NULL,
                                  targetbarcodes = NULL,
                                  Tn5offset = c(1, 0),
-                                 barcodesuffix = NULL) {
+                                 barcodesuffix = NULL,
+                                 dobptonext = FALSE) {
   fragmentoverlaplist = list()
   tbx = TabixFile(file = file)
   pb = txtProgressBar(max = length(targetregions), style = 3)
@@ -150,48 +154,51 @@ fragmentoverlapcount = function (file,
                 depth5 = sum(.data$overlapcount == 4),
                 depth6 = sum(.data$overlapcount == 5))
 
-    # Compute smoothed distance to the next fragment (irrelevant to BC) as bptonext,
-    # which is the inverse of chromatin accessibility.
-    compute_smoothed_distance =
-      function(frags) {
-        if (nrow(frags) > 1) {
-          smoothed_starts = ksmooth(
-            1:nrow(frags),
-            frags$start,
-            bandwidth = 200,
-            n.points = nrow(frags))$y
-          differences = diff(smoothed_starts)
-          differences = c(differences, differences[length(differences)])
-          frags$bptonext = pmax(differences, 0)
-        } else {
-          frags$bptonext = Inf
+    if (dobptonext) {
+      # Compute smoothed distance to the next fragment (irrelevant to BC) as bptonext,
+      # which is the inverse of chromatin accessibility.
+      compute_smoothed_distance =
+        function(frags) {
+          if (nrow(frags) > 1) {
+            smoothed_starts = ksmooth(
+              1:nrow(frags),
+              frags$start,
+              bandwidth = 200,
+              n.points = nrow(frags))$y
+            differences = diff(smoothed_starts)
+            differences = c(differences, differences[length(differences)])
+            frags$bptonext = pmax(differences, 0)
+          } else {
+            frags$bptonext = Inf
+          }
+          return(frags)
         }
-        return(frags)
-      }
 
-    # Convert bptonext into a list format
-    bptonext_as_list =
-      function(frags) {
-        list_data = frags %>%
-          mutate(depth = .data$overlapcount + 1) %>%
-          dplyr::filter(.data$depth <= 6) %>%
-          group_by(.data$BC, .data$depth) %>%
-          summarize(bptonext = list(.data$bptonext), .groups = "drop")
-        widened_data = pivot_wider(
-          list_data,
-          names_prefix = "bptonextdepth",
-          names_from = "depth",
-          values_from = "bptonext"
-        )
-        for (i in setdiff(paste0("bptonextdepth", 1:6), colnames(widened_data))) {
-          widened_data[[i]] = list(NULL)
+      # Convert bptonext into a list format
+      bptonext_as_list =
+        function(frags) {
+          list_data = frags %>%
+            mutate(depth = .data$overlapcount + 1) %>%
+            dplyr::filter(.data$depth <= 6) %>%
+            group_by(.data$BC, .data$depth) %>%
+            summarize(bptonext = list(.data$bptonext), .groups = "drop")
+          widened_data = pivot_wider(
+            list_data,
+            names_prefix = "bptonextdepth",
+            names_from = "depth",
+            values_from = "bptonext"
+          )
+          for (i in setdiff(paste0("bptonextdepth", 1:6), colnames(widened_data))) {
+            widened_data[[i]] = list(NULL)
+          }
+          return(widened_data)
         }
-        return(widened_data)
-      }
 
-    frags = compute_smoothed_distance(frags)
-    bptonext_list_data = bptonext_as_list(frags)
-    fragsbyBC = left_join(fragsbyBC, bptonext_list_data, by = 'BC')
+      frags = compute_smoothed_distance(frags)
+      bptonext_list_data = bptonext_as_list(frags)
+      fragsbyBC = left_join(fragsbyBC, bptonext_list_data, by = 'BC')
+    }
+
     if (! is.null(barcodesuffix)) {
       fragsbyBC$BC = paste0(fragsbyBC$BC, barcodesuffix[i])
     }
@@ -204,22 +211,36 @@ fragmentoverlapcount = function (file,
     stop('Error: no fragments remained after filtering')
   }
 
-  fragmentoverlap =
-    do.call(rbind, fragmentoverlaplist) %>%
-    group_by(.data$BC) %>%
-    summarize(nfrags = sum(.data$nfrags),
-              depth1 = sum(.data$depth1),
-              depth2 = sum(.data$depth2),
-              depth3 = sum(.data$depth3),
-              depth4 = sum(.data$depth4),
-              depth5 = sum(.data$depth5),
-              depth6 = sum(.data$depth6),
-              bptonextdepth1 = list(do.call(c, .data$bptonextdepth1)),
-              bptonextdepth2 = list(do.call(c, .data$bptonextdepth2)),
-              bptonextdepth3 = list(do.call(c, .data$bptonextdepth3)),
-              bptonextdepth4 = list(do.call(c, .data$bptonextdepth4)),
-              bptonextdepth5 = list(do.call(c, .data$bptonextdepth5)),
-              bptonextdepth6 = list(do.call(c, .data$bptonextdepth6)))
+  if (dobptonext) {
+    fragmentoverlap =
+      do.call(rbind, fragmentoverlaplist) %>%
+      group_by(.data$BC) %>%
+      summarize(nfrags = sum(.data$nfrags),
+                depth1 = sum(.data$depth1),
+                depth2 = sum(.data$depth2),
+                depth3 = sum(.data$depth3),
+                depth4 = sum(.data$depth4),
+                depth5 = sum(.data$depth5),
+                depth6 = sum(.data$depth6),
+                bptonextdepth1 = list(do.call(c, .data$bptonextdepth1)),
+                bptonextdepth2 = list(do.call(c, .data$bptonextdepth2)),
+                bptonextdepth3 = list(do.call(c, .data$bptonextdepth3)),
+                bptonextdepth4 = list(do.call(c, .data$bptonextdepth4)),
+                bptonextdepth5 = list(do.call(c, .data$bptonextdepth5)),
+                bptonextdepth6 = list(do.call(c, .data$bptonextdepth6)))
+  } else {
+    fragmentoverlap =
+      do.call(rbind, fragmentoverlaplist) %>%
+      group_by(.data$BC) %>%
+      summarize(nfrags = sum(.data$nfrags),
+                depth1 = sum(.data$depth1),
+                depth2 = sum(.data$depth2),
+                depth3 = sum(.data$depth3),
+                depth4 = sum(.data$depth4),
+                depth5 = sum(.data$depth5),
+                depth6 = sum(.data$depth6))
+  }
+
   fragmentoverlap = fragmentoverlap %>%
     rename(barcode = "BC")
   return(fragmentoverlap)
@@ -294,6 +315,9 @@ fragmentoverlapcount = function (file,
 #' 3) EM algorithm of mixture, and, optionally,
 #' 4) Bayesian inference are given.
 #' I recommend using \code{ploidy.moment} or \code{ploidy.em}.
+#' When \code{fragmentoverlapcount} was computed with \code{dobptonext=TRUE},
+#' we only use the chromosomal sites with chromatin accessibility in top 10%.
+#' This requires longer computation time.
 #'
 #' @importFrom matrixStats colMins
 #' @importFrom mixtools multmixEM

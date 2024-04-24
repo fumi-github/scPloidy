@@ -49,6 +49,9 @@ For each cell, its barcode, ploidy inferred by 1) moment method,
 3) EM algorithm of mixture, and, optionally,
 4) Bayesian inference are given.
 I recommend using \code{ploidy.moment} or \code{ploidy.em}.
+When \code{fragmentoverlapcount} was computed with \code{dobptonext=TRUE},
+we only use the chromosomal sites with chromatin accessibility in top 10%.
+This requires longer computation time.
 }
 \description{
 Infer Ploidy from ATAC-seq Fragment Overlap
