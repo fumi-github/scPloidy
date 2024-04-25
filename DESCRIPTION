@@ -19,10 +19,12 @@ Imports:
     dplyr,
     GenomicRanges,
     magrittr,
+    MASS,
     matrixStats,
     mixtools,
     nimble,
     rlang,
+    tibble,
     tidyr,
     Rsamtools,
     utils
