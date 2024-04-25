@@ -34,3 +34,17 @@ test_that("ploidy works", {
            c(2, 4, 8)),
     resploidy)
 })
+
+test_that("cnv works", {
+  load(test_path("testdata/GSE129785_SU008_Tumor_Pre.RData"))
+  x = cnv(SU008_Tumor_Pre_fragmentoverlap,
+          SU008_Tumor_Pre_windowcovariates,
+          levels = c(2, 4),
+          deltaBICthreshold = -600)
+  expect_equal(
+    x$CNV,
+    rescnv$CNV)
+  expect_equal(
+    x$cellwindowCN,
+    rescnv$cellwindowCN)
+})
