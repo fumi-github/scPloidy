@@ -131,7 +131,7 @@ cnv = function(fragmentoverlap,
   }
   x$fitted.values = a0$fitted.values
   x = x %>%
-    dplyr::select(.data$window, .data$fitted.values) %>%
+    dplyr::select("window", "fitted.values") %>%
     dplyr::distinct()
   fragmentoverlap$fitted.values =
     x$fitted.values[match(fragmentoverlap$window, x$window)]
@@ -191,7 +191,7 @@ cnv = function(fragmentoverlap,
     for (span in spanlist) {
       print(paste0("Computing span = ", span))
       wvariant = fragmentoverlap %>%
-        dplyr::select(.data$cell, .data$w, .data$chr, .data$variant) %>%
+        dplyr::select("cell", "w", "chr", "variant") %>%
         group_by(.data$cell, .data$chr) %>%
         filter(.data$w <= max(.data$w) - span + 1) %>% # omit w at end of chromosome
         mutate(variant_in_span = get_values_in_span(.data$w, .data$variant, span)) %>%
@@ -236,7 +236,7 @@ cnv = function(fragmentoverlap,
   resulttop =
     resultnonoverlapping %>%
     dplyr::arrange(.data$w) %>%
-    dplyr::select(.data$w, .data$deltaBIC, .data$deltaBICcelllist, .data$span, .data$type) %>%
+    dplyr::select("w", "deltaBIC", "deltaBICcelllist", "span", "type") %>%
     filter(.data$deltaBIC < deltaBICthreshold)
   x = match(resulttop$w, windowcovariates$w)
   y = match(resulttop$w + resulttop$span - 1, windowcovariates$w)
