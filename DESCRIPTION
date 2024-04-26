@@ -14,7 +14,7 @@ Depends: R (>= 3.5.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Imports: 
     dplyr,
     GenomicRanges,
@@ -24,9 +24,9 @@ Imports:
     mixtools,
     nimble,
     rlang,
+    Rsamtools,
     tibble,
     tidyr,
-    Rsamtools,
     utils
 Suggests: 
     IRanges,
