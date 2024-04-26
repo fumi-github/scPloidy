@@ -12,12 +12,14 @@
 #' @source \href{https://www.ncbi.nlm.nih.gov/geo/}{GEO, GSE129785}
 #'
 #' @examples
+#' \dontrun{
 #' data(GSE129785_SU008_Tumor_Pre)
 #' levels = c(2, 4)
 #' result = cnv(SU008_Tumor_Pre_fragmentoverlap,
 #'              SU008_Tumor_Pre_windowcovariates,
 #'              levels = levels,
 #'              deltaBICthreshold = -600)
+#' }
 
 #' @rdname GSE129785_SU008_Tumor_Pre
 #' @format \code{SU008_Tumor_Pre_fragmentoverlap} is a dataframe of fragmentoverlap.

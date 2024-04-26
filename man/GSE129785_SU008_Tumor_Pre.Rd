@@ -31,12 +31,14 @@ Overlapping of single-nucleus ATAC-seq fragments was computed with the
 \code{fragmentoverlapcount} function.
 }
 \examples{
+\dontrun{
 data(GSE129785_SU008_Tumor_Pre)
 levels = c(2, 4)
 result = cnv(SU008_Tumor_Pre_fragmentoverlap,
              SU008_Tumor_Pre_windowcovariates,
              levels = levels,
              deltaBICthreshold = -600)
+}
 }
 \references{
 Satpathy et al. (2019) Nature Biotechnology 37:925 \doi{10.1038/s41587-019-0206-z}
