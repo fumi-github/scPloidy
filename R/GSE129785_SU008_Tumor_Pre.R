@@ -20,13 +20,13 @@
 #'              deltaBICthreshold = -600)
 
 #' @rdname GSE129785_SU008_Tumor_Pre
-#' @format A dataframe of fragmentoverlap
+#' @format \code{SU008_Tumor_Pre_fragmentoverlap} is a dataframe of fragmentoverlap.
 "SU008_Tumor_Pre_fragmentoverlap"
 
 #' @rdname GSE129785_SU008_Tumor_Pre
-#' @format A dataframe of windows and peaks
+#' @format \code{SU008_Tumor_Pre_windowcovariates} is a dataframe of windows and peaks.
 "SU008_Tumor_Pre_windowcovariates"
 
 #' @rdname GSE129785_SU008_Tumor_Pre
-#' @format A list containing the output of cnv function
+#' @format \code{rescnv} is a list containing the output of cnv function.
 "rescnv"

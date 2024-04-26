@@ -8,11 +8,11 @@
 \alias{rescnv}
 \title{Basal cell carcinoma sample SU008_Tumor_Pre}
 \format{
-A dataframe of fragmentoverlap
+\code{SU008_Tumor_Pre_fragmentoverlap} is a dataframe of fragmentoverlap.
 
-A dataframe of windows and peaks
+\code{SU008_Tumor_Pre_windowcovariates} is a dataframe of windows and peaks.
 
-A list containing the output of cnv function
+\code{rescnv} is a list containing the output of cnv function.
 }
 \source{
 \href{https://www.ncbi.nlm.nih.gov/geo}{GEO, GSE129785}
