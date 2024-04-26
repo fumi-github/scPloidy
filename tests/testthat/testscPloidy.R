@@ -1,6 +1,12 @@
 library(scPloidy)
 
 test_that("fragmentoverlapcount works", {
+  skip_if_not_installed("GenomicRanges")
+  skip_if_not_installed("IRanges")
+  skip_if_not_installed("readr")
+  library(GenomicRanges)
+  library(IRanges)
+  library(readr)
   targetregions =
     GenomicRanges::GRanges(
       c("chr19", "chr20"),

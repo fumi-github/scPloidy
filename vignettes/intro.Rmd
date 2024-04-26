@@ -13,7 +13,8 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-has_pkg = requireNamespace("IRanges", quietly = TRUE) &&
+has_pkg = requireNamespace("GenomicRanges", quietly = TRUE) &&
+  requireNamespace("IRanges", quietly = TRUE) &&
   requireNamespace("readr", quietly = TRUE)
 knitr::opts_chunk$set(eval = has_pkg)
 ```
@@ -33,6 +34,9 @@ We model the depth of DNA sequencing at one site by binomial distribution.
 
 ```{r setup}
 library(scPloidy)
+library(GenomicRanges)
+library(IRanges)
+library(readr)
 ```
 
 See description.
