@@ -15,7 +15,7 @@
 \code{rescnv} is a list containing the output of cnv function.
 }
 \source{
-\href{https://www.ncbi.nlm.nih.gov/geo}{GEO, GSE129785}
+\href{https://www.ncbi.nlm.nih.gov/geo/}{GEO, GSE129785}
 }
 \usage{
 data(GSE129785_SU008_Tumor_Pre)

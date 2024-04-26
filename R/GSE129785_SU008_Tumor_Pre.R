@@ -9,7 +9,7 @@
 #' @docType data
 #' @usage data(GSE129785_SU008_Tumor_Pre)
 #' @references Satpathy et al. (2019) Nature Biotechnology 37:925 \doi{10.1038/s41587-019-0206-z}
-#' @source \href{https://www.ncbi.nlm.nih.gov/geo}{GEO, GSE129785}
+#' @source \href{https://www.ncbi.nlm.nih.gov/geo/}{GEO, GSE129785}
 #'
 #' @examples
 #' data(GSE129785_SU008_Tumor_Pre)
