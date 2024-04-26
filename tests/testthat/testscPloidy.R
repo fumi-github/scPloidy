@@ -36,7 +36,7 @@ test_that("ploidy works", {
 })
 
 test_that("cnv works", {
-  load(test_path("testdata/GSE129785_SU008_Tumor_Pre.RData"))
+  data(GSE129785_SU008_Tumor_Pre)
   x = cnv(SU008_Tumor_Pre_fragmentoverlap,
           SU008_Tumor_Pre_windowcovariates,
           levels = c(2, 4),
