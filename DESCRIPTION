@@ -29,6 +29,7 @@ Imports:
     tidyr,
     utils
 Suggests: 
+    gplots,
     IRanges,
     knitr,
     readr,

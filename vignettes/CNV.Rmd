@@ -1,0 +1,209 @@
+---
+title: "Identify Copy Number Variations (CNVs) in cancer cells"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CNV}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+has_pkg = requireNamespace("dplyr", quietly = TRUE) &&
+  requireNamespace("tidyr", quietly = TRUE) &&
+  requireNamespace("gplots", quietly = TRUE)
+knitr::opts_chunk$set(eval = has_pkg)
+```
+
+Analyze snATAC-seq data of basal cell carcinoma sample SU008_Tumor_Pre in GEO (GSE129785).
+
+```{r}
+library(scPloidy)
+library(dplyr)
+library(tidyr)
+library(gplots)
+```
+
+You can skip the preprocessing and start from section CNV.
+
+## Download from GEO
+
+Download GSE129785_scATAC-TME-All.cell_barcodes.txt.gz from below and gunzip
+https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE129785&format=file&file=GSE129785%5FscATAC%2DTME%2DAll%2Ecell%5Fbarcodes%2Etxt%2Egz
+
+Download GSM3722064_SU008_Tumor_Pre_fragments.tsv.gz from
+https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSM3722064&format=file&file=GSM3722064%5FSU008%5FTumor%5FPre%5Ffragments%2Etsv%2Egz
+
+## Prepare windows and peaks
+
+The input window file `window.hg37.20MB.bed` and
+resultant peak file `multi_tissue_peaks.hg37.20MB.bed`
+can be downloaded from
+https://doi.org/10.6084/m9.figshare.23574066
+
+To reproduce by yourself,
+download chromatin accessibility DHS_Index_and_Vocabulary_hg19_WM20190703.txt.gz from
+https://doi.org/10.5281/zenodo.3838751
+
+Generate peaks for 20MB windows using peak_sum.R by yardimcilab in
+https://github.com/yardimcilab/RIDDLER/blob/main/util/peak_sum.R
+
+```{r, eval = FALSE}
+SU008_Tumor_Pre_windowcovariates =
+  read.table(
+    "multi_tissue_peaks.hg37.20MB.bed",
+    header = FALSE)
+colnames(SU008_Tumor_Pre_windowcovariates) =
+  c("chr", "start", "end", "window", "peaks")
+```
+
+## Compute fragmentoverlap from fragments
+
+See vignette of R package scPloidy.
+Load setting for hg19 genome.
+
+```{r, eval = FALSE}
+simpleRepeat = readr::read_tsv(
+  "~/human/publichuman/hg37_ucsc/simpleRepeat.chrom_chromStart_chromEnd.txt.gz",
+  col_names = c("chrom", "chromStart", "chromEnd"))
+rmsk = readr::read_tsv(
+  "~/human/publichuman/hg37_ucsc/rmsk.Simple_repeat.genoName_genoStart_genoEnd.txt.gz",
+  col_names = c("chrom", "chromStart", "chromEnd"))
+simpleRepeat = rbind(simpleRepeat, rmsk)
+rm(rmsk)
+# convert from 0-based position to 1-based
+simpleRepeat[, 2] = simpleRepeat[, 2] + 1
+simpleRepeat = GenomicRanges::makeGRangesFromDataFrame(
+  as.data.frame(simpleRepeat),
+  seqnames.field = "chrom",
+  start.field    = "chromStart",
+  end.field      = "chromEnd")
+# remove duplicates
+simpleRepeat = GenomicRanges::union(simpleRepeat, GenomicRanges::GRanges())
+```
+
+```{r, eval = FALSE}
+window = read.table("window.hg37.20MB.bed", header = FALSE)
+colnames(window) = c("chr", "start", "end", "window")
+at = GenomicRanges::makeGRangesFromDataFrame(window[, 1:3])
+barcodesuffix = paste0(".", window$window)
+```
+
+```{r, eval = FALSE}
+sc = read.csv(
+  "GSE129785_scATAC-TME-All.cell_barcodes.txt",
+  header = TRUE,
+  sep = "\t")
+```
+
+Compute and save fragmentoverlap.
+
+```{r, eval = FALSE}
+sample = "GSM3722064"
+tissue = "SU008_Tumor_Pre"
+
+bc = sc$Barcodes[sc$Group == tissue]
+SU008_Tumor_Pre_fragmentoverlap =
+  fragmentoverlapcount(
+    paste0("SRX5679934/", sample, "_", tissue, "_fragments.tsv.gz"),
+    at,
+    excluderegions = simpleRepeat,
+    targetbarcodes = bc,
+    Tn5offset = c(1, 0),
+    barcodesuffix = barcodesuffix
+  )
+```
+
+## CNV
+
+You can skip above and load preprocessed data attached to the package.
+The data file GSE129785_SU008_Tumor_Pre.RData is also available from
+https://doi.org/10.6084/m9.figshare.23574066
+
+```{r}
+data(GSE129785_SU008_Tumor_Pre)
+```
+
+Infer CNVs.
+
+```{r}
+levels = c(2, 4)
+result = cnv(SU008_Tumor_Pre_fragmentoverlap,
+             SU008_Tumor_Pre_windowcovariates,
+             levels = levels,
+             deltaBICthreshold = -600)
+```
+
+Attach the result to `fragmentoverlap`.
+
+```{r}
+windowcovariates = SU008_Tumor_Pre_windowcovariates
+windowcovariates$w =
+  as.numeric(sub("window_", "", windowcovariates$window))
+
+fragmentoverlap = SU008_Tumor_Pre_fragmentoverlap
+fragmentoverlap$cell =
+  sub(".window.*", "", fragmentoverlap$barcode)
+fragmentoverlap$window =
+  sub(".*window", "window", fragmentoverlap$barcode)
+fragmentoverlap$w =
+  as.numeric(sub("window_", "", fragmentoverlap$window))
+
+x = match(fragmentoverlap$barcode,
+        result$cellwindowCN$barcode)
+fragmentoverlap$CN = result$cellwindowCN$CN[x]
+fragmentoverlap$ploidy.moment.cell = result$cellwindowCN$ploidy.moment.cell[x]
+fragmentoverlap = fragmentoverlap[!is.na(fragmentoverlap$CN), ]
+
+# For better hierarchical clustering
+fragmentoverlap$pwindownormalizedcleanedceiled =
+  pmin(fragmentoverlap$CN, min(levels) * 2)
+```
+
+Make dataframe for plotting.
+
+```{r}
+dataplot =
+  fragmentoverlap %>%
+  dplyr::select("w", "cell", "pwindownormalizedcleanedceiled") %>%
+  tidyr::pivot_wider(names_from = "w", values_from = "pwindownormalizedcleanedceiled")
+dataplot = as.data.frame(dataplot)
+rownames(dataplot) = dataplot$cell
+dataplot = dataplot[, colnames(dataplot) != "cell"]
+dataplot = as.matrix(dataplot)
+n = max(as.numeric(colnames(dataplot)))
+dataplot = dataplot[, match(as.character(1:n), colnames(dataplot))]
+colnames(dataplot) = as.character(1:n)
+```
+
+Plot.
+
+```{r, eval = FALSE}
+breaks = c(0, min(levels) - 1, min(levels) + 1, min(levels) * 2)
+
+x = windowcovariates
+x$chr[duplicated(windowcovariates$chr)] = NA
+x = x$chr[match(colnames(dataplot), x$w)]
+
+RowSideColors =
+  unlist(
+    lapply(
+      fragmentoverlap$ploidy.moment.cell[
+        match(rownames(dataplot), fragmentoverlap$cell)],
+      function (x) { which(sort(levels) == x)}))
+RowSideColors = topo.colors(length(levels))[RowSideColors]
+
+gplots::heatmap.2(
+  dataplot,
+  Colv = FALSE,
+  dendrogram = "none",
+  breaks = breaks,
+  col = c("blue", "gray80", "red"),
+  trace = "none", labRow = FALSE, na.color = "white",
+  labCol = x,
+  RowSideColors= RowSideColors)
+```
