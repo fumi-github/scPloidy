@@ -8,8 +8,14 @@ if the cell was diploid.
 If the cell was tetraploid, ATAC-seq could read 0, 1, 2, 3 or 4 fragments from the same site.
 This is the basic idea used in `scPloidy`.
 We model the depth of DNA sequencing at one site by binomial distribution.
+Additionally, this method can be adapted to detect the proliferating stage in the cell cycle and copy number variations in cancer cells.
 
-Manuscript available in [bioRxiv](https://doi.org/10.1101/2023.08.26.554926).
+This is published in [Genetics](https://doi.org/10.1093/genetics/iyae061).
+Related data is available from [figshare](https://doi.org/10.6084/m9.figshare.23574066).
+
+scPloidy can also be used for detecting multiplets (doublets, triplets) in single-cell assay.
+Based on biological knowledge, if the cells in your sample are likely all diploids, you can regard the detected polyploid cells as multiplets.
+Indeed, scPloidy can detect aggregation of cells of the same cell type, which cannot be detected by RNA-seq based algorithms (e.g., Scrublet, DoubletFinder, DoubletDecon).
 
 Questions? Please submit to GitHub Issues or e-mail fumihiko AT takeuchi DOT name
 
