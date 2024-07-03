@@ -10,6 +10,8 @@ This is the basic idea used in `scPloidy`.
 We model the depth of DNA sequencing at one site by binomial distribution.
 Additionally, this method can be adapted to detect the proliferating stage in the cell cycle and copy number variations in cancer cells.
 
+The algorithm should also work for single-cell (or single-nucleus) whole genome sequencing, if the template DNA is tagmented first. It does not work for whole genome amplified DNA.
+
 This is published in [Genetics](https://doi.org/10.1093/genetics/iyae061).
 Related data is available from [figshare](https://doi.org/10.6084/m9.figshare.23574066).
 
